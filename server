@@ -1,0 +1,206 @@
+#!/usr/bin/python3
+import argparse
+import configparser
+import os, sys, stat, platform
+from shutil import copyfile
+from subprocess import call as spcall
+
+#
+# General variables.
+#
+LXCDIR = '/var/lib/lxc'
+ERRORF = 'ERROR: %s'
+SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
+CONTAINERS = []
+for d in os.listdir(SCRIPTDIR):
+  if os.path.isdir(d):
+    if d != '.git':
+      CONTAINERS.append(d)
+
+def call(args, shell=False):
+  print(" ".join(args))
+  r = spcall(args, shell=shell)
+  if r != 0:
+    sys.exit(ERRORF % r)
+
+#
+# Start a container.
+#
+def start(container_name):
+  c = get_container(container_name)
+
+  # When the container doesn't exist yet, we need to create it.
+  if not os.path.exists(c['root']):
+    call(["lxc-create",
+          "-t%s" % c['template'],
+          "-n%s" % c['name']])
+
+    # Configure the static IP address.
+    with open("%s/config" % c['lxcdir'], "a") as config:
+      config.write("\n# CUSTOM CONFIGURATION FOR %s\n" % c['name'])
+      config.write("lxc.network.ipv4 = %s/16\n" % c['ipv4_address'])
+
+    # Install the provisioner scripts.
+    for script in c['scripts']:
+      service = os.path.basename(script).replace('.sh', '')
+      copyfile(script, '%s/etc/init.d/%s' % (c['root'], service))
+      call(['chmod', '755', '%s/etc/init.d/%s' % (c['root'], service)])
+      call(['chroot', c['root'], '/usr/sbin/update-rc.d', service, 'defaults'])
+
+    # Start the instance for the first time, the provisioner will run and shut
+    # itself down at the very end of the process. A proper mount follows.
+    call(["lxc-start", "-n%s" % c['name'], '/sbin/init'])
+
+  # Assure all bind mounts are mounted.
+  for src,dst in c['mounts'].items():
+    dst = '%s/%s' % (c['root'], dst)
+    mount(src, dst.replace('//', '/'))
+
+  call(['lxc-start', "-n%s" % c['name'], '/sbin/init'])
+
+#
+# Stop a container.
+#
+def stop(container_name):
+  c = get_container(container_name)
+
+  # First gently stop the container, then umount the filesystems.
+  call(['lxc-stop', "-n%s" % c['name']])
+  for src,dst in c['mounts'].items():
+    dst = '%s/%s' % (c['root'], dst)
+    umount(src, dst.replace('//', '/'))
+
+#
+# Destroy a container.
+#
+def destroy(container_name):
+  c = get_container(container_name)
+
+  # Umount everything FIRST, as it has already wiped out a home directory!
+  for src,dst in c['mounts'].items():
+    dst = '%s/%s' % (c['root'], dst)
+
+    # Luckily, after ^^^, the umount function stops the script if umounts fail!
+    umount(src, dst.replace('//', '/'))
+
+  call(['lxc-destroy', "-n%s" % c['name']])
+
+#
+# Mount the given src,dst bind mount instruction.
+#
+def mount(src, dst):
+  if not os.path.ismount(dst):
+    call(['mount', '--bind', src, dst])
+  if not os.path.ismount(dst):
+    sys.exit(ERRORF % "apparently %s didn't bind mount!" % dst)
+
+#
+# Umount the given src,dst bind mount instruction.
+#
+def umount(src, dst):
+  if os.path.ismount(dst):
+    call(['umount', '--force', dst])
+  if os.path.ismount(dst):
+    sys.exit(ERRORF % "%s DID NOT cleanly umount, check lsof!" % dst)
+
+#
+# Satisfy that all dependencies are met and won't cause issues.
+#
+def check_dependencies(prog=None):
+  if prog is not None:
+    for dir in os.environ['PATH'].split(os.pathsep):
+      if os.path.exists(os.path.join(dir, prog)):
+        return True
+    return False
+
+  deps = ['chmod', 'mount', 'umount', 'lxc-start', 'lxc-stop', 'lxc-destroy']
+  if platform.system() != 'Linux':
+    sys.exit(ERRORF % 'This only works on Linux.')
+  if oct(stat.S_IMODE(os.lstat(LXCDIR).st_mode)) != '0o705':
+    sys.exit(ERRORF % 'Please do "sudo chmod 705 %s".' % LXCDIR)
+  for dep in deps:
+    if not check_dependencies(dep):
+      sys.exit(ERRORF % "dependency %s not satisfied!" % dep)
+
+#
+# Get the container dictionary.
+#
+def get_container(container_name):
+  c = {}
+  c['name'] = container_name
+  c['home'] = os.environ['HOME']
+  c['dir'] = '%s/%s' % (SCRIPTDIR, container_name)
+  c['lxcdir'] = "%s/%s" % (LXCDIR, container_name)
+  c['root'] = "%s/rootfs" % c['lxcdir']
+
+  # Collect every script ending on .sh as script.
+  c['scripts'] = []
+  for f in os.listdir(c['dir']):
+    if f[-3:] == '.sh':
+      c['scripts'].append("%s/%s" % (c['dir'], f))
+
+  # Parse config.ini
+  c['template'] = 'doesnotexist'
+  c['ipv4_address'] = '0.0.0.0'
+  c['mounts'] = {}
+  if os.path.exists("%s/config.ini" % c['dir']):
+    config = configparser.ConfigParser()
+    config.read("%s/config.ini" % c['dir'])
+    if 'container' in config:
+      if 'template' in config['container']:
+        c['template'] = config['container']['template'].strip()
+    if 'network' in config:
+      if 'ipv4_address' in config['network']:
+        c['ipv4_address'] = config['network']['ipv4_address'].strip()
+    if 'bindmounts' in config:
+      for src in config['bindmounts']:
+        dst = config.get('bindmounts', src)
+        for k, v in c.items():
+          if type(v) == str:
+            dst = dst.replace('$%s' % k, v)
+            src = src.replace('$%s' % k, v)
+        c['mounts'][src] = dst
+  return c
+
+#
+# Retrieve the argument parser object.
+#
+def get_parser():
+  descr = 'A minimalist LXC based container manager'
+  descr_c = "\n".join(["  - %s" % c for c in CONTAINERS])
+  descr = '%s\n\ncontainers:\n%s' % (descr, descr_c)
+  parser = argparse.ArgumentParser(
+                formatter_class=argparse.RawTextHelpFormatter,
+                add_help=False,
+                prog='./server',
+                description=descr)
+  parser.add_argument('container',
+                help='The name of the container')
+  parser.add_argument('command',
+                choices=['start', 'stop', 'destroy'],
+                help='Whether to start (default), stop or destroy the container.')
+  return parser
+
+#
+# Parse argv and dispatch code.
+#
+try:
+  sys.argv[1]
+except IndexError:
+  sys.argv.append('unset')
+try:
+  sys.argv[2]
+except IndexError:
+  sys.argv.append('start')
+parser = get_parser()
+arguments = parser.parse_args()
+if arguments.container not in CONTAINERS:
+  parser.print_help()
+else:
+
+  # Re-execute ourselves as root from this point on, we'll need to mess
+  # around in /var/lib/lxc quite a bit so this makes it much easier.
+  if os.geteuid() != 0:
+    os.execvp("sudo", ["sudo"] + sys.argv)
+  check_dependencies()
+  locals()[arguments.command](arguments.container)
