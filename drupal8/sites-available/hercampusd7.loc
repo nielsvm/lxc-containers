@@ -1,0 +1,16 @@
+<VirtualHost *:80>
+  ServerAdmin niels@niels.niels
+  DocumentRoot /home/nvmourik/www/hercampusd7
+  ServerName hercampusd7.loc
+
+  <Directory /home/nvmourik/www/hercampusd7>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    allow from all
+  </Directory>
+
+  ErrorLog ${APACHE_LOG_DIR}/error.hercampusd7.log
+  LogLevel warn
+  CustomLog ${APACHE_LOG_DIR}/access.hercampusd7.log combined
+</VirtualHost>

@@ -1,0 +1,24 @@
+<VirtualHost *:80>
+  ServerAdmin niels.vanmourik@acquia.com
+  DocumentRoot /home/nvmourik/www/<PROJECT>
+  ServerName <PROJECT>.loc
+
+  # Tune PHP to run the CCS site smoothly.
+  #php_value max_execution_time 120
+  #php_value upload_max_filesize "20M"
+  #php_value post_max_size "20M"
+
+  # Setup environment variables.
+  SetEnv VAR "VAL"
+
+  <Directory /home/nvmourik/www/<PROJECT>>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    allow from all
+  </Directory>
+
+  ErrorLog ${APACHE_LOG_DIR}/error.<PROJECT>.log
+  LogLevel warn
+  CustomLog ${APACHE_LOG_DIR}/access.<PROJECT>.log combined
+</VirtualHost>
