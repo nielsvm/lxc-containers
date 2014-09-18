@@ -1,4 +1,4 @@
-# What?
+# lxc-containers
 This repository equips your Linux machine with several utility *containers* of some sort, built entirely on LXC. Intended mainly for software developers, this allows you to run LAMP stacks and variations thereof on your computer without littering your desktop installation and without requiring heavily bloated virtualization solutions.
 
 ### LXC?
