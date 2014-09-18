@@ -24,10 +24,24 @@ cd lxc-containers/
 
 Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
 
+### apache-memcached-mysql-php55, drupal8my
+*Debian 7*, *Apache 2*, *MySQL*, *Memcached*, *PHP 5.5*
+
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
+
+This contains a working installation of MySQL, you can connect to it with user `root` and password `root`.
+
 ### apache-memcached-php53, drupal7
-*Debian 7*, *Apache 2*,  *Memcached*, *PHP 5.3*
+*Debian 7*, *Apache 2*, *Memcached*, *PHP 5.3*
 
 Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
+
+### apache-memcached-mysql-php53, drupal7my
+*Debian 7*, *Apache 2*, *MySQL*, *Memcached*, *PHP 5.3*
+
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
+
+This contains a working installation of MySQL, you can connect to it with user `root` and password `root`.
 
 ### bare
 *Debian 7*
