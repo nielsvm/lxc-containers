@@ -18,10 +18,71 @@ for d in os.listdir(SCRIPTDIR):
       CONTAINERS.append(d)
 
 #
-# Start a container.
+# COMMAND: Start a container.
 #
-def start(container_name):
+def START(arguments, container_name):
   c = get_container(container_name)
+  initialize(c)
+
+  # Assure all bind mounts are mounted.
+  for src,dst in c['mounts'].items():
+    dst = '%s/%s' % (c['root'], dst)
+    mount(src, dst.replace('//', '/'))
+
+  call(['lxc-start', "-n%s" % c['name'], '/sbin/init'])
+
+#
+# COMMAND: Start a container daemonized.
+#
+def DAEMON(arguments, container_name):
+  c = get_container(container_name)
+  initialize(c)
+
+  # Assure all bind mounts are mounted.
+  for src,dst in c['mounts'].items():
+    dst = '%s/%s' % (c['root'], dst)
+    mount(src, dst.replace('//', '/'))
+
+  call(['lxc-start', "-d", "-n%s" % c['name'], '/sbin/init'])
+  print("Instance started daemonized:")
+  print(" - Use './server %s stop' to stop it again." % c['name'])
+  print(" - Use 'ssh root@%s' if your container has SSH installed.\n" % c['ipv4_address'])
+
+#
+# COMMAND: Stop a container.
+#
+def STOP(arguments, container_name):
+  c = get_container(container_name)
+  if not os.path.exists(c['root']):
+    os.sys.exit(ERRORF % 'container does not exist!')
+
+  # First gently stop the container, then umount the filesystems.
+  call(['lxc-stop', "-n%s" % c['name']])
+  for src,dst in c['mounts'].items():
+    dst = '%s/%s' % (c['root'], dst)
+    umount(src, dst.replace('//', '/'))
+
+#
+# COMMAND: Destroy a container.
+#
+def DESTROY(arguments, container_name):
+  c = get_container(container_name)
+  if not os.path.exists(c['root']):
+    os.sys.exit(ERRORF % 'container does not exist!')
+
+  # Umount everything FIRST, as it has already wiped out a home directory!
+  for src,dst in c['mounts'].items():
+    dst = '%s/%s' % (c['root'], dst)
+
+    # Luckily, after ^^^, the umount function stops the script if umounts fail!
+    umount(src, dst.replace('//', '/'))
+
+  call(['lxc-destroy', "-n%s" % c['name']])
+
+#
+# Initialize a container when it does not yet exist.
+#
+def initialize(c):
 
   # When the container doesn't exist yet, we need to create it.
   if not os.path.exists(c['root']):
@@ -59,44 +120,6 @@ def start(container_name):
     # Start the instance for the first time, the provisioner will run and shut
     # itself down at the very end of the process. A proper mount follows.
     call(["lxc-start", "-n%s" % c['name'], '/sbin/init'])
-
-  # Assure all bind mounts are mounted.
-  for src,dst in c['mounts'].items():
-    dst = '%s/%s' % (c['root'], dst)
-    mount(src, dst.replace('//', '/'))
-
-  call(['lxc-start', "-n%s" % c['name'], '/sbin/init'])
-
-#
-# Stop a container.
-#
-def stop(container_name):
-  c = get_container(container_name)
-  if not os.path.exists(c['root']):
-    os.sys.exit(ERRORF % 'container does not exist!')
-
-  # First gently stop the container, then umount the filesystems.
-  call(['lxc-stop', "-n%s" % c['name']])
-  for src,dst in c['mounts'].items():
-    dst = '%s/%s' % (c['root'], dst)
-    umount(src, dst.replace('//', '/'))
-
-#
-# Destroy a container.
-#
-def destroy(container_name):
-  c = get_container(container_name)
-  if not os.path.exists(c['root']):
-    os.sys.exit(ERRORF % 'container does not exist!')
-
-  # Umount everything FIRST, as it has already wiped out a home directory!
-  for src,dst in c['mounts'].items():
-    dst = '%s/%s' % (c['root'], dst)
-
-    # Luckily, after ^^^, the umount function stops the script if umounts fail!
-    umount(src, dst.replace('//', '/'))
-
-  call(['lxc-destroy', "-n%s" % c['name']])
 
 #
 # Mount the given src,dst bind mount instruction.
@@ -192,7 +215,7 @@ def get_parser():
   parser.add_argument('container',
                 help='The name of the container')
   parser.add_argument('command',
-                choices=['start', 'stop', 'destroy'],
+                choices=['start', 'daemon', 'stop', 'destroy'],
                 help='Whether to start (default), stop or destroy the container.')
   return parser
 
@@ -216,8 +239,9 @@ else:
   # Re-execute ourselves as root from this point on, we'll need to mess
   # around in /var/lib/lxc quite a bit so this makes it much easier.
   if os.geteuid() != 0:
+
     print("LXC and this script require root-level privileges in order to manage")
     print("your containers and %s, please provide your biggest secret below.\n" % LXCDIR)
     os.execvp("sudo", ["sudo"] + sys.argv)
   check_dependencies()
-  locals()[arguments.command](arguments.container)
+  locals()[arguments.command.upper()](arguments, arguments.container)
