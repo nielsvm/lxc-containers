@@ -98,7 +98,7 @@ function bootstrap_5_tune_php {
 
   # Tune APC.
   echo 'apc.rfc1867 = 1' >> /etc/php5/mods-available/apc.ini
-  echo 'apc.shm_size = 96M' >> /etc/php5/mods-available/apc.ini
+  echo 'apc.shm_size = 128M' >> /etc/php5/mods-available/apc.ini
   etc-save "php: tuned APC"
 
   # XDEBUG: enable pretty var_dump output.
