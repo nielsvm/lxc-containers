@@ -19,6 +19,11 @@ cd lxc-containers/
 
 # Inside this goodiebag
 
+### bare
+*Debian 7*
+
+Empty Debian installation with apt-get and git at your disposal, the `/etc/` directory has been tracked in GIT to make change tracking more convenient.
+
 ### apache-memcached-php55, drupal8
 *Debian 7*, *Apache 2*, *Memcached*, *PHP 5.5*
 
