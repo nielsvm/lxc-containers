@@ -3,7 +3,7 @@ import argparse
 import configparser
 import os, sys, stat, platform
 from shutil import copyfile
-from subprocess import call as spcall
+from subprocess import call
 
 #
 # General variables.
@@ -16,12 +16,6 @@ for d in os.listdir(SCRIPTDIR):
   if os.path.isdir(d):
     if d != '.git':
       CONTAINERS.append(d)
-
-def call(args, shell=False):
-  print(" ".join(args))
-  r = spcall(args, shell=shell)
-  if r != 0:
-    sys.exit(ERRORF % r)
 
 #
 # Start a container.
@@ -63,6 +57,8 @@ def start(container_name):
 #
 def stop(container_name):
   c = get_container(container_name)
+  if not os.path.exists(c['root']):
+    os.sys.exit(ERRORF % 'container does not exist!')
 
   # First gently stop the container, then umount the filesystems.
   call(['lxc-stop', "-n%s" % c['name']])
@@ -75,6 +71,8 @@ def stop(container_name):
 #
 def destroy(container_name):
   c = get_container(container_name)
+  if not os.path.exists(c['root']):
+    os.sys.exit(ERRORF % 'container does not exist!')
 
   # Umount everything FIRST, as it has already wiped out a home directory!
   for src,dst in c['mounts'].items():
@@ -112,8 +110,8 @@ def check_dependencies(prog=None):
       if os.path.exists(os.path.join(dir, prog)):
         return True
     return False
-
-  deps = ['chmod', 'mount', 'umount', 'lxc-start', 'lxc-stop', 'lxc-destroy']
+  deps = ['chroot', 'chmod', 'mount', 'umount',
+          'lxc-start', 'lxc-stop', 'lxc-destroy']
   if platform.system() != 'Linux':
     sys.exit(ERRORF % 'This only works on Linux.')
   if oct(stat.S_IMODE(os.lstat(LXCDIR).st_mode)) != '0o705':
@@ -201,6 +199,8 @@ else:
   # Re-execute ourselves as root from this point on, we'll need to mess
   # around in /var/lib/lxc quite a bit so this makes it much easier.
   if os.geteuid() != 0:
+    print("LXC and this script require root-level privileges in order to manage")
+    print("your containers and %s, please provide your biggest secret below.\n" % LXCDIR)
     os.execvp("sudo", ["sudo"] + sys.argv)
   check_dependencies()
   locals()[arguments.command](arguments.container)
