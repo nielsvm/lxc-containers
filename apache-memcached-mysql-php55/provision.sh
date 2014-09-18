@@ -165,7 +165,7 @@ function bootstrap_9_tune_apache {
 
   # Tune prefork a bit better.
   echo '' >> /etc/apache2/apache2.conf
-  echo '# NIELS: TUNE PREFORK' >> /etc/apache2/apache2.conf
+  echo '# TUNE PREFORK' >> /etc/apache2/apache2.conf
   echo '<IfModule mpm_prefork_module>' >> /etc/apache2/apache2.conf
   echo '  StartServers          5' >> /etc/apache2/apache2.conf
   echo '  MinSpareServers       5' >> /etc/apache2/apache2.conf
@@ -178,7 +178,7 @@ function bootstrap_9_tune_apache {
   # Let Apache run as the $LXC_USER user.
   chown -Rfv $LXC_USER:$LXC_USER /var/lock/apache2
   echo '' >> /etc/apache2/envvars
-  echo "# NIELS: FORCE APACHE TO RUN AS $LXC_USER" >> /etc/apache2/envvars
+  echo "# FORCE APACHE TO RUN AS $LXC_USER" >> /etc/apache2/envvars
   echo "export APACHE_RUN_USER=$LXC_USER" >> /etc/apache2/envvars
   echo "export APACHE_RUN_GROUP=$LXC_USER" >> /etc/apache2/envvars
   etc-save "apache2: run as $LXC_USER"
