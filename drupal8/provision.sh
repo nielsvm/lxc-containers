@@ -11,18 +11,19 @@
 ### END INIT INFO
 
 #
+# Source the variables the host provisioner gave us.
+#
+source /etc/lxc-containervars.sh
+
+#
 # Helper functions.
 #
 export DEBIAN_FRONTEND=noninteractive
-export PROVISIONER_STATEFILE='/root/bootstrap-state'
-export PROVISIONER_IP_HOST='10.0.3.1'
-export PROVISIONER_USER='nvmourik'
-export PROVISIONER_USERDIR="/home/$PROVISIONER_USER"
-export GIT_AUTHOR_NAME="$PROVISIONER_USER"
-export GIT_AUTHOR_EMAIL=$PROVISIONER_USER@localhost
+export STATEFILE='/root/bootstrap-state'
+export GIT_AUTHOR_NAME="$LXC_USER"
+export GIT_AUTHOR_EMAIL=$LXC_USER@localhost
 export GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
 export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
-
 
 # Install APT package(s) as given in the first argument.
 function addpkg {
@@ -65,9 +66,9 @@ function bootstrap_1_etc_in_git_repo {
 
 # Bootstrap phase 2: Setup the user account.
 function bootstrap_2_setup_user {
-  useradd -U -m -d "$PROVISIONER_USERDIR" -s /bin/bash -u 1000 "$PROVISIONER_USER"
-  passwd -q -e $PROVISIONER_USER
-  etc-save "Added user $PROVISIONER_USER"
+  useradd -U -m -d "$LXC_HOME" -s /bin/bash -u 1000 "$LXC_USER"
+  passwd -q -e $LXC_USER
+  etc-save "Added user $LXC_USER"
 }
 
 # Bootstrap phase 3: Setup the dotdeb.org repository and update APT.
@@ -100,7 +101,7 @@ function bootstrap_5_tune_server {
   HOSTNAME=`hostname`
 
   # Add important records to /etc/hosts.
-  echo "$PROVISIONER_IP_HOST master" >> /etc/hosts
+  echo "$LXC_IPV4_ADDRESS master" >> /etc/hosts
   echo "127.0.0.1       $HOSTNAME" >> /etc/hosts
   etc-save "Updated /etc/hosts."
 }
@@ -161,13 +162,13 @@ function bootstrap_7_tune_apache {
   echo '</IfModule>' >> /etc/apache2/apache2.conf
   etc-save "Apache2: tuned prefork"
 
-  # Let Apache run as the $PROVISIONER_USER user.
-  chown -Rfv $PROVISIONER_USER:$PROVISIONER_USER /var/lock/apache2
+  # Let Apache run as the $LXC_USER user.
+  chown -Rfv $LXC_USER:$LXC_USER /var/lock/apache2
   echo '' >> /etc/apache2/envvars
-  echo "# NIELS: FORCE APACHE TO RUN AS $PROVISIONER_USER" >> /etc/apache2/envvars
-  echo "export APACHE_RUN_USER=$PROVISIONER_USER" >> /etc/apache2/envvars
-  echo "export APACHE_RUN_GROUP=$PROVISIONER_USER" >> /etc/apache2/envvars
-  etc-save "apache2: run as $PROVISIONER_USER"
+  echo "# NIELS: FORCE APACHE TO RUN AS $LXC_USER" >> /etc/apache2/envvars
+  echo "export APACHE_RUN_USER=$LXC_USER" >> /etc/apache2/envvars
+  echo "export APACHE_RUN_GROUP=$LXC_USER" >> /etc/apache2/envvars
+  etc-save "apache2: run as $LXC_USER"
 
   # Start apache2 ordinarily.
   /etc/init.d/apache2 start
@@ -215,8 +216,8 @@ case "$1" in
     s=1
 
     # If the state-file exists, retrieve the current state from there.
-    if [ -f $PROVISIONER_STATEFILE ]; then
-      state=`cat $PROVISIONER_STATEFILE`
+    if [ -f $STATEFILE ]; then
+      state=`cat $STATEFILE`
     fi
 
     # Loop all phases and execute the callback for each of the phases.
@@ -236,7 +237,7 @@ case "$1" in
         # Handle exit strategies and phase storage in the state file.
         if [ $exitcode -ne 0 ]; then
           if [ $exitcode -eq 2 ]; then
-            echo "$s" > $PROVISIONER_STATEFILE
+            echo "$s" > $STATEFILE
             echo "[EXIT]... exiting (phase advances next time)."
           else
             echo "[EXIT]... exiting (phase repeats next time)."
@@ -244,7 +245,7 @@ case "$1" in
           return 0
         else
           sleep 1
-          echo "$s" > $PROVISIONER_STATEFILE
+          echo "$s" > $STATEFILE
           state=$(($state + 1))
         fi
       fi

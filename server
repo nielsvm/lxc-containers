@@ -1,7 +1,7 @@
 #!/usr/bin/python3
+import os, pwd, sys, stat, platform
 import argparse
 import configparser
-import os, sys, stat, platform
 from shutil import copyfile
 from subprocess import call
 
@@ -48,6 +48,13 @@ def start(container_name):
         etcissue.write("This is not a vm, but a isolated container keeping\n")
         etcissue.write("your development tools isolated. Login with root/root\n")
         etcissue.write("and shut it down with 'halt -p'.\n\n")
+
+    # Create a script named /etc/lxc-containervars.sh and print all variables.
+    with open("%s/etc/lxc-containervars.sh" % c['root'], 'w+') as vars:
+      vars.write("#!/bin/bash\n")
+      for k, v in c.items():
+        if type(v) == str:
+          vars.write("export LXC_%s=\"%s\"\n" % (k.upper(), v))
 
     # Start the instance for the first time, the provisioner will run and shut
     # itself down at the very end of the process. A proper mount follows.
@@ -134,9 +141,11 @@ def check_dependencies(prog=None):
 def get_container(container_name):
   c = {}
   c['name'] = container_name
-  c['home'] = os.environ['HOME']
+  c['home'] = pwd.getpwuid(os.stat(SCRIPTDIR).st_uid).pw_dir
+  c['user'] = pwd.getpwuid(os.stat(SCRIPTDIR).st_uid).pw_name
   c['dir'] = '%s/%s' % (SCRIPTDIR, container_name)
   c['lxcdir'] = "%s/%s" % (LXCDIR, container_name)
+  c['scriptdir'] = SCRIPTDIR
   c['root'] = "%s/rootfs" % c['lxcdir']
 
   # Collect every script ending on .sh as script.
