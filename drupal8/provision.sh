@@ -116,7 +116,6 @@ function bootstrap_6_tune_server {
 function bootstrap_7_tune_php {
 
   # OPCACHE: enable the opcache as it doesn't seem to be by default.
-#   zend_extension=opcache.so
   echo 'opcache.enable=On' >> /etc/php5/mods-available/opcache.ini
   echo 'opcache.memory_consumption=128' >> /etc/php5/mods-available/opcache.ini
   echo 'opcache.interned_strings_buffer=16' >> /etc/php5/mods-available/opcache.ini
