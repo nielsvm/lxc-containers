@@ -39,7 +39,7 @@ def DAEMON(arguments, container_name):
   call(['lxc-start', "-d", "-n%s" % c['name'], '/sbin/init'])
   print("Instance started daemonized:")
   print(" - Use './server %s stop' to stop it again." % c['name'])
-  print(" - Use 'ssh root@%s' if your container has SSH installed.\n" % c['ipv4_address'])
+  print(" - Use 'ssh root@%s' to get into your container.\n" % c['ipv4_address'])
 
 #
 # COMMAND: Stop a container.
