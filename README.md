@@ -19,11 +19,6 @@ cd lxc-containers/
 
 # Inside this goodiebag
 
-### bare
-*Debian 7*
-
-Empty Debian installation with apt-get and git at your disposal, the `/etc/` directory has been tracked in GIT to make change tracking more convenient.
-
 ### apache-memcached-php55, drupal8
 *Debian 7*, *Apache 2*, *Memcached*, *PHP 5.5*
 
@@ -33,6 +28,11 @@ Simple webserver that mounts your home directory into the container, and runs Ap
 *Debian 7*, *Apache 2*,  *Memcached*, *PHP 5.3*
 
 Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
+
+### bare
+*Debian 7*
+
+Empty Debian installation with apt-get and git at your disposal, the `/etc/` directory has been tracked in GIT to make change tracking more convenient.
 
 # Build your own
 Each directory represents one container providing something. Every script (ending on `.sh`) inside it will get installed into the container as `/etc/init.d/SCRIPTNAME` service and marked to start at boot. All the shell script provides is a `sysvinit` compatible script but most bundled also work with a *phased provisioning mechanism*, what that means is that everything gets installed in steps which greatly helps writing your own. The best way to start is to copy a directory and to configure `config.ini`, adapt `provision.sh` and to start tweaking and running `./server CONTAINER` and `./server CONTAINER destroy` until its perfect and well-tested.
