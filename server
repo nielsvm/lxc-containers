@@ -5,17 +5,10 @@ import configparser
 from shutil import copyfile
 from subprocess import call
 
-#
-# General variables.
-#
+# General purpose, global variables.
+SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
 LXCDIR = '/var/lib/lxc'
 ERRORF = 'ERROR: %s'
-SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
-CONTAINERS = []
-for d in os.listdir(SCRIPTDIR):
-  if os.path.isdir(d):
-    if d != '.git':
-      CONTAINERS.append(d)
 
 #
 # COMMAND: Start a container.
@@ -78,6 +71,30 @@ def DESTROY(arguments, container_name):
     umount(src, dst.replace('//', '/'))
 
   call(['lxc-destroy', "-n%s" % c['name']])
+
+#
+# Retrieve a list of all containers.
+#
+def containers(check = False):
+  global _containers
+  if not '_containers' in globals():
+    _containers = {}
+    for d in os.listdir(SCRIPTDIR):
+      if d != '.git':
+        if os.path.isdir(d) and not os.path.islink(d):
+          if d not in _containers:
+            _containers[d] = []
+        if os.path.islink(d):
+          dst = os.path.basename(os.path.realpath(d))
+          if dst not in _containers:
+            _containers[dst] = []
+          _containers[dst].append(d)
+  if check:
+    for container,aliases in _containers.items():
+      if (check in aliases) or (check == container):
+        return container
+    return False
+  return _containers
 
 #
 # Initialize a container when it does not yet exist.
@@ -205,7 +222,13 @@ def get_container(container_name):
 #
 def get_parser():
   descr = 'A minimalist LXC based container manager'
-  descr_c = "\n".join(["  - %s" % c for c in CONTAINERS])
+  _containers = []
+  for c,aliases in containers().items():
+    if len(aliases):
+      _containers.append("%s (%s)" % (c, ", ".join(aliases)))
+    else:
+      _containers.append(c)
+  descr_c = "\n".join(["  - %s" % c for c in _containers])
   descr = '%s\n\ncontainers:\n%s' % (descr, descr_c)
   parser = argparse.ArgumentParser(
                 formatter_class=argparse.RawTextHelpFormatter,
@@ -232,10 +255,9 @@ except IndexError:
   sys.argv.append('start')
 parser = get_parser()
 arguments = parser.parse_args()
-if arguments.container not in CONTAINERS:
+if not containers(arguments.container):
   parser.print_help()
 else:
-
   # Re-execute ourselves as root from this point on, we'll need to mess
   # around in /var/lib/lxc quite a bit so this makes it much easier.
   if os.geteuid() != 0:
@@ -244,4 +266,4 @@ else:
     print("your containers and %s, please provide your biggest secret below.\n" % LXCDIR)
     os.execvp("sudo", ["sudo"] + sys.argv)
   check_dependencies()
-  locals()[arguments.command.upper()](arguments, arguments.container)
+  locals()[arguments.command.upper()](arguments, containers(arguments.container))
