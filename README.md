@@ -1,16 +1,33 @@
-What are these?
-=============
-Summarized, this set of scripts provides you essentially lightweight LXC containers of some sort. These won't replace `vagrant`, `docker` nor will they make sense outside the software development use case, but they do make pure LXC containers a little more portable and reusable.
+# What?
+This repository equips your Linux machine with several utility *containers* of some sort, built entirely on LXC. Intended mainly for software developers, this allows you to run LAMP stacks and variations thereof on your computer without littering your desktop installation and without requiring heavily bloated virtualization solutions.
 
-Why LXC?
--------------
-Tools like Vagrant (+`varnish-lxc`), Docker and Virtualbox are all really great in what they were made for. The benefits of portability and isolation of binaries+configuration, should however not come at the price of performance. And although linux-only, LXC is fast... **bloody fast!** There's simply no virtualization but your *servers* are still isolated, making it easy to reinstall your computer or rebuild it when you changed things for a certain project.
+### LXC?
+LXC is a thin layer on top of Linux cgroups, allowing you to 'slice up' your computer without full X86 emulation, but mere resource splitting. Containers live in `/var/lib/lxc` and have their own (tiny) root hierarchies, essential system binaries but share your main kernel instance.
 
-How its organized
--------------
-Each directory represents a reusable server doing something. The scripts wrap around `lxc-create`, `lxc-start`, `lxc-stop` and `lxc-destroy` and make starting servers as simple as `./server start`. Once it all ran for the first time and when `provision.sh` did its work, the container template and container will say in `/var` and stay at your disposal with fast rebuild and boot times.
+You can compare this project a little bit with `varnish-lxc` but this is intentionally simple, highly portable (git clone) and aimed at coders who need something **seriously fast**. Virtualization can be fast but isn't always necessarily so, and when its just a LAMP stack or ruby/python binaries of some version you need, this gives you the best of both.
 
-The servers
-=============
+# Installation
+All you need is *Ubuntu 14.04/trusty* and LXC installed (`apt-get install lxc-templates`) on your computer.
 
-More coming...
+To prevent any common pitfalls, make sure to clone this somewhere within (and/or underneath) your Linux home directory and as your own Linux user. Also make sure to uninstall any of the software the container you are going to use provides, so that for instance Apache won't claim a TCP port your main machine uses.
+
+```
+git clone https://github.com/nielsvm/lxc-containers.git
+cd lxc-containers/
+./server <CONTAINERNAME> start
+```
+
+# Inside this goodiebag
+
+### drupal8
+*Debian 7*, *Apache 2*, *PHP 5.5*
+
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
+
+### drupal7
+*Debian 7*, *Apache 2*, *PHP 5.3*
+
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
+
+# Build your own
+Each directory represents one container providing something. Every script (ending on `.sh`) inside it will get installed into the container as `/etc/init.d/SCRIPTNAME` service and marked to start at boot. All the shell script provides is a `sysvinit` compatible script but most bundled also work with a *phased provisioning mechanism*, what that means is that everything gets installed in steps which greatly helps writing your own. The best way to start is to copy a directory and to configure `config.ini`, adapt `provision.sh` and to start tweaking and running `./server CONTAINER` and `./server CONTAINER destroy` until its perfect and well-tested.
