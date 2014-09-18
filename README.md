@@ -14,20 +14,20 @@ To prevent any common pitfalls, make sure to clone this somewhere within (and/or
 ```
 git clone https://github.com/nielsvm/lxc-containers.git
 cd lxc-containers/
-./server <CONTAINERNAME> start
+./server <CONTAINERNAME>
 ```
 
 # Inside this goodiebag
 
 ### drupal8
-*Debian 7*, *Apache 2*, *PHP 5.5*
+*Debian 7*, *Apache 2*, *Memcached*, *PHP 5.5*
 
-Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
 
 ### drupal7
-*Debian 7*, *Apache 2*, *PHP 5.3*
+*Debian 7*, *Apache 2*,  *Memcached*, *PHP 5.3*
 
-Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. You need to provide a couple of vhost files in `sites-available` outside of the container, and relatively symlink them from `sites-enabled`. On your main machine, you need to put records in `/etc/hosts` pointing to `10.0.3.10`.
 
 # Build your own
 Each directory represents one container providing something. Every script (ending on `.sh`) inside it will get installed into the container as `/etc/init.d/SCRIPTNAME` service and marked to start at boot. All the shell script provides is a `sysvinit` compatible script but most bundled also work with a *phased provisioning mechanism*, what that means is that everything gets installed in steps which greatly helps writing your own. The best way to start is to copy a directory and to configure `config.ini`, adapt `provision.sh` and to start tweaking and running `./server CONTAINER` and `./server CONTAINER destroy` until its perfect and well-tested.

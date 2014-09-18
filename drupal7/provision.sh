@@ -71,20 +71,26 @@ function bootstrap_2_setup_user {
   etc-save "Added user $LXC_USER"
 }
 
-# Bootstrap phase 3: install PHP 5.5.
-function bootstrap_3_install_apache_php {
+# Bootstrap phase 3: Setup and configure memcached.
+function bootstrap_3_setup_memcached {
+  addpkg memcached
+  etc-save "Installed memcached"
+}
+
+# Bootstrap phase 4: install PHP 5.5.
+function bootstrap_4_install_apache_php {
 
   # Install packages.
   addpkg "apache2"
   etc-save "Vanilla Apache with worker MPM"
   addpkg "apache2-mpm-prefork"
   etc-save "Switched to Apache's prefork MPM."
-  addpkg "libapache2-mod-php5 php5 php5-curl php5-mysqlnd php5-cli php5-gd php5-xdebug php-apc php5-gmp"
+  addpkg "libapache2-mod-php5 php5 php5-curl php5-memcached php5-mysqlnd php5-cli php5-gd php5-xdebug php-apc php5-gmp"
   etc-save "Stock PHP 5.5 and Apache2 packages"
 }
 
-# Bootstrap phase 4: tune the server itself.
-function bootstrap_4_tune_server {
+# Bootstrap phase 5: tune the server itself.
+function bootstrap_5_tune_server {
   HOSTNAME=`hostname`
 
   # Add important records to /etc/hosts.
@@ -93,8 +99,8 @@ function bootstrap_4_tune_server {
   etc-save "Updated /etc/hosts."
 }
 
-# Bootstrap phase 5: tune PHP and its extensions.
-function bootstrap_5_tune_php {
+# Bootstrap phase 6: tune PHP and its extensions.
+function bootstrap_6_tune_php {
 
   # Tune APC.
   echo 'apc.rfc1867 = 1' >> /etc/php5/mods-available/apc.ini
@@ -117,8 +123,8 @@ function bootstrap_5_tune_php {
   etc-save "php: enable xdebug remote debugging."
 }
 
-# Bootstrap phase 6: tune Apache and its modules
-function bootstrap_6_tune_apache {
+# Bootstrap phase 7: tune Apache and its modules
+function bootstrap_7_tune_apache {
 
   # Stop apache before all the surgery.
   /etc/init.d/apache2 stop
@@ -172,7 +178,7 @@ case "$1" in
 
   # Upon system start we want to go through all bootstrap stages not done yet.
   start)
-    phases="1_etc_in_git_repo 2_setup_user 3_install_apache_php 4_tune_server 5_tune_php 6_tune_apache ordinary_boot_rc"
+    phases="1_etc_in_git_repo 2_setup_user 3_setup_memcached 4_install_apache_php 5_tune_server 6_tune_php 7_tune_apache ordinary_boot_rc"
     state=0
     s=1
 
