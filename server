@@ -41,6 +41,13 @@ def start(container_name):
       call(['chmod', '755', '%s/etc/init.d/%s' % (c['root'], service)])
       call(['chroot', c['root'], '/usr/sbin/update-rc.d', service, 'defaults'])
 
+    # Add a explanatory message to /etc/issue.
+    with open("%s/etc/issue" % c['root'], "a") as etcissue:
+      etcissue.write("\nWelcome to your LXC container %s!\n\n" % c['name'])
+      etcissue.write("This is not a vm, but a isolated container keeping\n")
+      etcissue.write("your development tools isolated. Login with root/root\n")
+      etcissue.write("and shut it down with 'halt -p'.\n")
+
     # Start the instance for the first time, the provisioner will run and shut
     # itself down at the very end of the process. A proper mount follows.
     call(["lxc-start", "-n%s" % c['name'], '/sbin/init'])
