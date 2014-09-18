@@ -46,7 +46,7 @@ This contains a working installation of MySQL, you can connect to it with user `
 ### bare
 *Debian 7*
 
-Empty Debian installation with apt-get and git at your disposal, the `/etc/` directory has been tracked in GIT to make change tracking more convenient.
+Empty Debian installation with apt-get and git at your disposal, the `/etc` directory has been tracked in GIT to make change tracking more convenient.
 
 # Build your own
 Each directory represents one container providing something. Every script (ending on `.sh`) inside it will get installed into the container as `/etc/init.d/SCRIPTNAME` service and marked to start at boot. All the shell script provides is a `sysvinit` compatible script but most bundled also work with a *phased provisioning mechanism*, what that means is that everything gets installed in steps which greatly helps writing your own. The best way to start is to copy a directory and to configure `config.ini`, adapt `provision.sh` and to start tweaking and running `./server CONTAINER` and `./server CONTAINER destroy` until its perfect and well-tested.
