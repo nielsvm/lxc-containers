@@ -178,7 +178,7 @@ case "$1" in
 
   # Upon system start we want to go through all bootstrap stages not done yet.
   start)
-    phases="1_etc_in_git_repo 2_setup_user 3_setup_memcached 4_install_apache_php 5_tune_server 6_tune_php 7_tune_apache ordinary_boot_rc"
+    phases=`compgen -A function bootstrap_ | tr '\n' ' ' | sed "s/bootstrap_//g"`
     state=0
     s=1
 

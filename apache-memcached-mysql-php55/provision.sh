@@ -191,24 +191,24 @@ function bootstrap_9_tune_apache {
 }
 
 # Bootstrap phase 10: install Composer and Drush globally.
-function bootstrap_10_composer_drush {
-  addpkg curl
-  etc-save "Installed curl"
-
-  # Install composer into /usr/local/bin.
-  curl -sS https://getcomposer.org/installer | php
-  mv composer.phar /usr/local/bin/composer
-
-  # Install Drush and symlink to it into /usr/local/bin.
-  git clone https://github.com/drush-ops/drush.git
-  mv drush /usr/local
-  chmod +x /usr/local/drush/drush
-  ln -s /usr/local/drush/drush /usr/local/bin/drush
-
-  # Install the Composer dependencies.
-  cd /usr/local/drush
-  /usr/local/bin/composer install
-}
+# function bootstrap_10_composer_drush {
+#   addpkg curl
+#   etc-save "Installed curl"
+#
+#   # Install composer into /usr/local/bin.
+#   curl -sS https://getcomposer.org/installer | php
+#   mv composer.phar /usr/local/bin/composer
+#
+#   # Install Drush and symlink to it into /usr/local/bin.
+#   git clone https://github.com/drush-ops/drush.git
+#   mv drush /usr/local
+#   chmod +x /usr/local/drush/drush
+#   ln -s /usr/local/drush/drush /usr/local/bin/drush
+#
+#   # Install the Composer dependencies.
+#   cd /usr/local/drush
+#   /usr/local/bin/composer install
+# }
 
 # Last bootstrap phase and repeated on every boot.
 function bootstrap_ordinary_boot_rc {
@@ -224,7 +224,7 @@ case "$1" in
 
   # Upon system start we want to go through all bootstrap stages not done yet.
   start)
-    phases="1_etc_in_git_repo 2_setup_user 3_setup_memcached 4_setup_mysql 5_setup_dotdeb 6_install_apache_php  7_tune_server 8_tune_php 9_tune_apache ordinary_boot_rc"
+    phases=`compgen -A function bootstrap_ | tr '\n' ' ' | sed "s/bootstrap_//g"`
     state=0
     s=1
 
