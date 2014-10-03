@@ -168,8 +168,28 @@ function bootstrap_8_tune_php {
   etc-save "php: enable xdebug remote debugging."
 }
 
-# Bootstrap phase 9: tune Apache and its modules
-function bootstrap_9_tune_apache {
+# Bootstrap phase 9: install Composer and Drush globally.
+function bootstrap_9_composer_drush {
+  addpkg curl
+  etc-save "Installed curl"
+
+  # Install composer into /usr/local/bin.
+  curl -sS https://getcomposer.org/installer | php
+  mv composer.phar /usr/local/bin/composer
+
+  # Install Drush and symlink to it into /usr/local/bin.
+  git clone https://github.com/drush-ops/drush.git
+  mv drush /usr/local
+  chmod +x /usr/local/drush/drush
+  ln -s /usr/local/drush/drush /usr/local/bin/drush
+
+  # Install the Composer dependencies.
+  cd /usr/local/drush
+  COMPOSER_HOME='/root/.composer' /usr/local/bin/composer install
+}
+
+# Bootstrap phase 10: tune Apache and its modules
+function bootstrap_10_tune_apache {
 
   # Stop apache before all the surgery.
   /etc/init.d/apache2 stop
@@ -208,26 +228,6 @@ function bootstrap_9_tune_apache {
   # We are done, shut off the machine so it can reboot with all mounts in place.
   poweroff
 }
-
-# Bootstrap phase 10: install Composer and Drush globally.
-# function bootstrap_10_composer_drush {
-#   addpkg curl
-#   etc-save "Installed curl"
-#
-#   # Install composer into /usr/local/bin.
-#   curl -sS https://getcomposer.org/installer | php
-#   mv composer.phar /usr/local/bin/composer
-#
-#   # Install Drush and symlink to it into /usr/local/bin.
-#   git clone https://github.com/drush-ops/drush.git
-#   mv drush /usr/local
-#   chmod +x /usr/local/drush/drush
-#   ln -s /usr/local/drush/drush /usr/local/bin/drush
-#
-#   # Install the Composer dependencies.
-#   cd /usr/local/drush
-#   /usr/local/bin/composer install
-# }
 
 # Last bootstrap phase and repeated on every boot.
 function bootstrap_ordinary_boot_rc {

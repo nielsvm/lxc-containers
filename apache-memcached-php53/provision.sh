@@ -123,8 +123,28 @@ function bootstrap_6_tune_php {
   etc-save "php: enable xdebug remote debugging."
 }
 
-# Bootstrap phase 7: tune Apache and its modules
-function bootstrap_7_tune_apache {
+# Bootstrap phase 7: install Composer and Drush globally.
+function bootstrap_7_composer_drush {
+  addpkg curl
+  etc-save "Installed curl"
+
+  # Install composer into /usr/local/bin.
+  curl -sS https://getcomposer.org/installer | php
+  mv composer.phar /usr/local/bin/composer
+
+  # Install Drush and symlink to it into /usr/local/bin.
+  git clone https://github.com/drush-ops/drush.git
+  mv drush /usr/local
+  chmod +x /usr/local/drush/drush
+  ln -s /usr/local/drush/drush /usr/local/bin/drush
+
+  # Install the Composer dependencies.
+  cd /usr/local/drush
+  COMPOSER_HOME='/root/.composer' /usr/local/bin/composer install
+}
+
+# Bootstrap phase 8: tune Apache and its modules
+function bootstrap_8_tune_apache {
 
   # Stop apache before all the surgery.
   /etc/init.d/apache2 stop
