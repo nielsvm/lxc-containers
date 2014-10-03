@@ -25,6 +25,12 @@ def START(arguments, container_name):
 
   call(['lxc-start', "-n%s" % c['name'], '/sbin/init'])
 
+  # Sleep a little and umount all mounts.
+  sleep(2)
+  for src,dst in c['mounts'].items():
+    dst = '%s/%s' % (c['root'], dst)
+    umount(src, dst.replace('//', '/'))
+
 #
 # COMMAND: Start a container daemonized.
 #
