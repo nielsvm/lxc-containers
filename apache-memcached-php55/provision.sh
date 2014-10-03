@@ -98,8 +98,27 @@ function bootstrap_5_install_apache_php {
   etc-save "Vanilla Apache with worker MPM"
   addpkg "apache2-mpm-prefork"
   etc-save "Switched to Apache's prefork MPM."
-  addpkg "libapache2-mod-php5 php5 php5-curl php5-apcu php5-memcached php5-mysqlnd php5-cli php5-gd php5-gmp"
+  addpkg "libapache2-mod-php5 php5-dev php5 php5-curl php5-apcu php5-mysqlnd php5-cli php5-gd php5-gmp"
   etc-save "Stock PHP 5.5 and Apache2 packages"
+
+  # Install pecl-memcached.
+  addpkg "pkg-config libmemcached-dev"
+  etc-save "Installed pkg-config, libmemcached-dev"
+
+  # Compile memcached manually :/
+  cd /tmp
+  pecl download memcached
+  tar -xvzf memcached*.tgz
+  rm memcached*.tgz
+  cd memcached*
+  phpize
+  ./configure --disable-memcached-sasl
+  make
+  make install
+  echo 'extension=memcached.so' >> /etc/php5/mods-available/memcache.ini
+  ln -s /etc/php5/mods-available/memcache.ini /etc/php5/apache2/conf.d/20-memcache.ini
+  ln -s /etc/php5/mods-available/memcache.ini /etc/php5/cli/conf.d/20-memcache.ini
+  etc-save "installed memcached"
 }
 
 # Bootstrap phase 6: tune the server itself.
