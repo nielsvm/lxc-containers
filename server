@@ -144,6 +144,8 @@ def initialize(c):
 #
 def mount(src, dst):
   if not ismount(dst):
+    if not os.path.exists(dst):
+      call(['mkdir', '-p', dst])
     call(['mount', '--bind', src, dst])
     sleep(1)
   if not ismount(dst):
