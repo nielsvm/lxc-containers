@@ -62,6 +62,8 @@ function bootstrap_1_etc_in_git_repo {
   touch /etc/.gitignore
   echo 'apache2/sites*' >> /etc/.gitignore
   etc-save "Added .gitignore"
+  addpkg nano vim
+  etc-save "Installed nano and vim"
 }
 
 # Bootstrap phase 2: Setup the user account.
