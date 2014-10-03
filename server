@@ -4,7 +4,7 @@ import argparse
 import configparser
 from time import sleep
 from shutil import copyfile
-from subprocess import call
+from subprocess import call, check_output
 
 # General purpose, global variables.
 SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
@@ -143,20 +143,28 @@ def initialize(c):
 # Mount the given src,dst bind mount instruction.
 #
 def mount(src, dst):
-  if not os.path.ismount(dst):
+  if not ismount(dst):
     call(['mount', '--bind', src, dst])
     sleep(1)
-  if not os.path.ismount(dst):
+  if not ismount(dst):
     sys.exit(ERRORF % "apparently %s didn't bind mount!" % dst)
+
+#
+# Check whether the given path is mounted or whether it isn't.
+#
+def ismount(path):
+  if path in str(check_output(['mount'])):
+    return True
+  return False
 
 #
 # Umount the given src,dst bind mount instruction.
 #
 def umount(src, dst):
-  if os.path.ismount(dst):
+  if ismount(dst):
     call(['umount', '--force', dst])
     sleep(1)
-  if os.path.ismount(dst):
+  if ismount(dst):
     sys.exit(ERRORF % "%s DID NOT cleanly umount, check lsof!" % dst)
 
 #
