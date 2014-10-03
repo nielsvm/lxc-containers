@@ -2,6 +2,7 @@
 import os, pwd, sys, stat, platform
 import argparse
 import configparser
+from time import sleep
 from shutil import copyfile
 from subprocess import call
 
@@ -144,6 +145,7 @@ def initialize(c):
 def mount(src, dst):
   if not os.path.ismount(dst):
     call(['mount', '--bind', src, dst])
+    sleep(1)
   if not os.path.ismount(dst):
     sys.exit(ERRORF % "apparently %s didn't bind mount!" % dst)
 
@@ -153,6 +155,7 @@ def mount(src, dst):
 def umount(src, dst):
   if os.path.ismount(dst):
     call(['umount', '--force', dst])
+    sleep(1)
   if os.path.ismount(dst):
     sys.exit(ERRORF % "%s DID NOT cleanly umount, check lsof!" % dst)
 
