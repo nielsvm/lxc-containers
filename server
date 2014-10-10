@@ -91,7 +91,8 @@ def containers(check = False):
       if d != '.git':
         if os.path.isdir(d) and not os.path.islink(d):
           if d not in _containers:
-            _containers[d] = []
+            if 'config.ini' in os.listdir("%s/%s" % (SCRIPTDIR, d)):
+              _containers[d] = []
         if os.path.islink(d):
           dst = os.path.basename(os.path.realpath(d))
           if dst not in _containers:
