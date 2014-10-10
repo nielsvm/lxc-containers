@@ -23,6 +23,7 @@ def START(arguments, container_name):
     dst = '%s/%s' % (c['root'], dst)
     mount(src, dst.replace('//', '/'))
 
+  # Start the container.
   call(['lxc-start', "-n%s" % c['name'], '/sbin/init'])
 
   # Sleep a little and umount all mounts.
@@ -284,5 +285,12 @@ else:
     print("LXC and this script require root-level privileges in order to manage")
     print("your containers and %s, please provide your biggest secret below.\n" % LXCDIR)
     os.execvp("sudo", ["sudo"] + sys.argv)
+
+  # Check if the user has this script somewhere underneath its home directory,
+  # because if it is not, assumptions on mount points will break!
+  if pwd.getpwuid(os.stat(SCRIPTDIR).st_uid).pw_dir not in SCRIPTDIR:
+    sys.exit(ERRORF % "containers repository should be put within your home directory!")
+
+  # Check for dependencies and call the chosen command by the same-named function.
   check_dependencies()
   locals()[arguments.command.upper()](arguments, containers(arguments.container))
