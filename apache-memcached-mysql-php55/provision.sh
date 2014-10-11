@@ -201,7 +201,7 @@ function bootstrap_10_tune_apache {
   etc-save "apache2: disabled several unnecessary modules"
 
   # Enable modules that we do want to have enabled.
-  a2enmod rewrite php5
+  a2enmod rewrite vhost_alias php5
   etc-save "apache2: enabling several modules that we do need."
 
   # Tune prefork a bit better.
@@ -223,6 +223,24 @@ function bootstrap_10_tune_apache {
   echo "export APACHE_RUN_USER=$LXC_USER" >> /etc/apache2/envvars
   echo "export APACHE_RUN_GROUP=$LXC_USER" >> /etc/apache2/envvars
   etc-save "apache2: run as $LXC_USER"
+
+  # Remove the default vhost and setup virtual vhost sharing...
+  echo '<Virtualhost *:80>' >> /etc/apache2/sites-available/vhosts
+  echo '  VirtualDocumentRoot "/var/www/%-2+"' >> /etc/apache2/sites-available/vhosts
+  echo '  ServerName vhosts.loc' >> /etc/apache2/sites-available/vhosts
+  echo '  ServerAlias *.loc' >> /etc/apache2/sites-available/vhosts
+  echo '  UseCanonicalName Off' >> /etc/apache2/sites-available/vhosts
+  echo '  ErrorLog ${APACHE_LOG_DIR}/error.log' >> /etc/apache2/sites-available/vhosts
+  echo '' >> /etc/apache2/sites-available/vhosts
+  echo '  <Directory "/var/www/*">' >> /etc/apache2/sites-available/vhosts
+  echo '    Options Indexes FollowSymLinks MultiViews' >> /etc/apache2/sites-available/vhosts
+  echo '    AllowOverride All' >> /etc/apache2/sites-available/vhosts
+  echo '    Order allow,deny' >> /etc/apache2/sites-available/vhosts
+  echo '    Allow from all' >> /etc/apache2/sites-available/vhosts
+  echo '  </Directory>' >> /etc/apache2/sites-available/vhosts
+  echo '</Virtualhost>' >> /etc/apache2/sites-available/vhosts
+  a2ensite vhosts
+  etc-save "apache2: configured a VirtualDocumentRoot driven setup"
 
   # Start apache2 ordinarily.
   /etc/init.d/apache2 start
