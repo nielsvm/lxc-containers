@@ -215,27 +215,35 @@ def get_container(container_name):
     if f[-3:] == '.sh':
       c['scripts'].append("%s/%s" % (c['dir'], f))
 
-  # Parse config.ini
-  c['template'] = 'doesnotexist'
-  c['ipv4_address'] = '0.0.0.0'
+  # Parse the master config.ini, if keys are missing, this fails badly.
+  if not os.path.exists("%s/config.ini" % c['scriptdir']):
+    sys.exit(ERRORF % "cannot find %s!" % ("%s/config.ini" % c['scriptdir']))
+  mastercnf = configparser.ConfigParser()
+  mastercnf.read("%s/config.ini" % c['scriptdir'])
+  c['template'] = mastercnf['container']['template'].strip()
+  c['ipv4_address'] = mastercnf['network']['ipv4_address'].strip()
+  c['ipv4_address_host'] = mastercnf['network']['ipv4_address_host'].strip()
+
+  # Parse the container specific config.ini, which can override a few bits.
   c['mounts'] = {}
-  if os.path.exists("%s/config.ini" % c['dir']):
-    config = configparser.ConfigParser()
-    config.read("%s/config.ini" % c['dir'])
-    if 'container' in config:
-      if 'template' in config['container']:
-        c['template'] = config['container']['template'].strip()
-    if 'network' in config:
-      if 'ipv4_address' in config['network']:
-        c['ipv4_address'] = config['network']['ipv4_address'].strip()
-    if 'bindmounts' in config:
-      for src in config['bindmounts']:
-        dst = config.get('bindmounts', src)
-        for k, v in c.items():
-          if type(v) == str:
-            dst = dst.replace('$%s' % k, v)
-            src = src.replace('$%s' % k, v)
-        c['mounts'][src] = dst
+  cnf = configparser.ConfigParser()
+  cnf.read("%s/config.ini" % c['dir'])
+  if 'container' in cnf:
+    if 'template' in cnf['container']:
+      c['template'] = cnf['container']['template'].strip()
+  if 'network' in cnf:
+    if 'ipv4_address' in cnf['network']:
+      c['ipv4_address'] = cnf['network']['ipv4_address'].strip()
+    if 'ipv4_address_host' in cnf['network']:
+      c['ipv4_address_host'] = cnf['network']['ipv4_address_host'].strip()
+  if 'bindmounts' in cnf:
+    for src in cnf['bindmounts']:
+      dst = cnf.get('bindmounts', src)
+      for k, v in c.items():
+        if type(v) == str:
+          dst = dst.replace('$%s' % k, v)
+          src = src.replace('$%s' % k, v)
+      c['mounts'][src] = dst
   return c
 
 #

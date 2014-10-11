@@ -96,7 +96,7 @@ function bootstrap_5_tune_server {
   HOSTNAME=`hostname`
 
   # Add important records to /etc/hosts.
-  echo "$LXC_IPV4_ADDRESS master" >> /etc/hosts
+  echo "$LXC_IPV4_ADDRESS_HOST master" >> /etc/hosts
   echo "127.0.0.1       $HOSTNAME" >> /etc/hosts
   etc-save "Updated /etc/hosts."
 }
