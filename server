@@ -136,12 +136,17 @@ def initialize(c):
         etcissue.write("your development tools isolated. Login with root/root\n")
         etcissue.write("and shut it down with 'halt -p'.\n\n")
 
-    # Create a script named /etc/lxc-containervars.sh and print all variables.
-    with open("%s/etc/lxc-containervars.sh" % c['root'], 'w+') as vars:
-      vars.write("#!/bin/bash\n")
-      for k, v in c.items():
+    # Create two provisioner helper scripts (sh, php) with all variables.
+    with open("%s/etc/lxc-containervars.sh" % c['root'], 'w+') as varssh:
+      varssh.write("#!/bin/bash\n")
+      for k, v in sorted(c.items()):
         if type(v) == str:
-          vars.write("export LXC_%s=\"%s\"\n" % (k.upper(), v))
+          varssh.write("export LXC_%s=\"%s\"\n" % (k.upper(), v))
+    with open("%s/etc/lxc-containervars.php" % c['root'], 'w+') as varsphp:
+      varsphp.write("<?PHP\n")
+      for k, v in sorted(c.items()):
+        if type(v) == str:
+          varsphp.write("$lxc_%s = \"%s\";\n" % (k, v))
 
     # Start the instance for the first time, the provisioner will run and shut
     # itself down at the very end of the process. A proper mount follows.
