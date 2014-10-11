@@ -1,0 +1,75 @@
+#!/usr/bin/python3
+import os, sys, configparser
+SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
+
+# As this script rewrites /etc/hosts, we need to reexecute ourselves as root.
+if os.geteuid() != 0:
+  os.execvp("sudo", ["sudo"] + sys.argv)
+
+# Retrieve IPV4_ADDRESS from the master config.ini file.
+mastercnf = configparser.ConfigParser()
+mastercnf.read("%s/../config.ini" % SCRIPTDIR)
+IPV4_ADDRESS = mastercnf['network']['ipv4_address'].strip()
+
+# Generate the list of domain names for each directory under www/.
+DOMAINS = []
+for d in os.listdir(SCRIPTDIR):
+  if d != '.git':
+    if os.path.isdir("%s/%s" % (SCRIPTDIR, d)):
+      DOMAINS.append("%s.loc" % d)
+DOMAINS = sorted(DOMAINS)
+
+# Generate the lines we'd like to inject.
+MARKER_START = "# update-etc-hosts - DO NOT TOUCH THIS SECTION! #############\n"
+MARKER_END   = "# /update-etc-hosts #########################################\n"
+LINES = [MARKER_START]
+linebuf = [IPV4_ADDRESS]
+for domain in DOMAINS:
+  linebuf.append(domain)
+  if len(linebuf) == 4:
+    LINES.append(" ".join(linebuf) + "\n")
+    linebuf = [IPV4_ADDRESS]
+if len(linebuf) > 1:
+  LINES.append(" ".join(linebuf) + "\n")
+LINES.append(MARKER_END)
+
+# Read /etc/hosts and replace OR add the new lines, generate a full new buffer.
+buffer = []
+with open('/etc/hosts', 'r') as h:
+  had_old_section = False
+  within_old_section = False
+  for line in h.readlines():
+    if line == MARKER_START:
+      within_old_section = had_old_section = True
+    if within_old_section:
+      if line == MARKER_END:
+        within_old_section = False
+
+        # Now append the newly generated section just in place.
+        for line in LINES:
+          buffer.append(line)
+
+      continue
+    else:
+      buffer.append(line)
+  if not had_old_section:
+    last_line = buffer.pop()
+    buffer.append(last_line)
+    if last_line != "\n":
+      buffer.append("\n")
+    for line in LINES:
+      buffer.append(line)
+h.close()
+
+# Reopen /etc/hosts in truncated write mode, and rewrite the file.
+with open('/etc/hosts', 'w') as h:
+  for line in buffer:
+    h.write(line)
+h.close()
+
+# Nice, we're done, let's tell the user.
+if had_old_section:
+  print("Successfully replaced the old hosts in /etc/hosts!\n")
+else:
+  print("Successfully added the hosts to /etc/hosts!\n")
+print("".join(LINES))

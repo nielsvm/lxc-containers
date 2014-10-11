@@ -56,7 +56,15 @@ foreach(scandir(getcwd()) as $project) {
       <div class="hostrecords">
         <h3>How it works</h3>
         <p>
-          Projects placed in the <code>www/</code> directory are automatically set up as virtual hosts with their own domain names. For instance, a directory <code>mysite</code> can be reached via <code>http://mysite.loc/</code> after you configured its <code>/etc/host</code> record.
+          Projects placed in the <code>www/</code> directory are automatically set up as virtual hosts with their own domain names. For instance, a directory <code>mysite</code> can be reached via <code>http://mysite.loc/</code> after you configured its <code>/etc/hosts</code> record. You can <i>easily</i> update your hosts file with the <code>www/update-etc-hosts</code> script:
+        </p>
+        <div class="msg">
+<pre>$ cd www/
+./update-etc-hosts
+</pre>
+        </div>
+        <p>
+          But if that isn't your thing, you can use these auto-generated lines:
         </p>
         <div class="msg">
 <pre><?php
