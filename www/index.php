@@ -1,3 +1,21 @@
+<?PHP
+
+// Load the container variables, exported as PHP variables during initialization.
+require "/etc/lxc-containervars.php";
+
+// Generate a reliable list of projects.
+$projects = array();
+foreach(scandir(getcwd()) as $project) {
+  if (in_array($project, array('.', '..'))) {
+    continue;
+  }
+  if (!is_dir($project)) {
+    continue;
+  }
+  $projects[] = $project;
+}
+
+?>
 <!DOCTYPE html>
 <html>
   <head>
@@ -28,10 +46,8 @@
 
       <div class="sites">
 <?php
-  foreach(scandir(getcwd()) as $item) {
-    if (in_array($item, array('.', '..'))) {continue;}
-    if (!is_dir($item)) {continue;}
-    printf('<a class="btn smooth btn-a" href="http://%s.loc/" target="_blank">%s.loc</a>&nbsp;', $item, $item);
+  foreach($projects as $project) {
+    printf('<a class="btn smooth btn-a" href="http://%s.loc/" target="_blank">%s.loc</a>&nbsp;', $project, $project);
   }
 ?>
         <p><br /></p>
@@ -44,10 +60,8 @@
         </p>
         <div class="msg">
 <pre><?php
-  foreach(scandir(getcwd()) as $item) {
-    if (in_array($item, array('.', '..'))) {continue;}
-    if (!is_dir($item)) {continue;}
-    printf("10.0.3.10\t%s.loc\n", $item);
+  foreach($projects as $project) {
+    printf("%s\t%s.loc\n", $lxc_ipv4_address, $project);
   }
 ?></pre>
         </div>
