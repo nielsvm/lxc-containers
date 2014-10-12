@@ -20,22 +20,22 @@ cd lxc-containers/
 # Inside this goodiebag
 
 ### apache-memcached-php55, drupal8
-*Debian 7*, *Apache 2*, *Memcached*, *PHP 5.5*
+*Debian 7*, *Apache 2*, *Memcached*, *Drush*, *Symfony*, *PHP 5.5*
 
 Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.3.10/ for further instructions.
 
 ### apache-memcached-mysql-php55, drupal8my
-*Debian 7*, *Apache 2*, *MySQL*, *Memcached*, *PHP 5.5*
+*Debian 7*, *Apache 2*, *MySQL*, *Memcached*, *Drush*, *Symfony*, *PHP 5.5*
 
 Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. This container ships with MySQL installed, which you can connect to with `root`/`root`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.3.10/ for further instructions.
 
 ### apache-memcached-php53, drupal7
-*Debian 7*, *Apache 2*, *Memcached*, *PHP 5.3*
+*Debian 7*, *Apache 2*, *Memcached*, *Drush*, *Symfony*, *PHP 5.3*
 
 Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.3.10/ for further instructions.
 
 ### apache-memcached-mysql-php53, drupal7my
-*Debian 7*, *Apache 2*, *MySQL*, *Memcached*, *PHP 5.3*
+*Debian 7*, *Apache 2*, *MySQL*, *Memcached*, *Drush*, *Symfony*, *PHP 5.3*
 
 Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. This container ships with MySQL installed, which you can connect to with `root`/`root`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.3.10/ for further instructions.
 
