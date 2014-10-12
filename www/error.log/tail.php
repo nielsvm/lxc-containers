@@ -16,10 +16,10 @@ if (isset($_GET['last_line'])) {
   $handle = fopen(LOGFILE, 'r');
   $last_five_lines = array();
   $last_line = (int)$_GET['last_line'];
+  $current_line = -1;
   $buffer = '';
 
   while ($line = fgets($handle)) {
-    if (!isset($current_line)) $current_line = -1;
     $current_line++;
 
     if ($current_line <= $last_line) {
@@ -40,7 +40,12 @@ if (isset($_GET['last_line'])) {
   }
   fclose($handle);
   header('Content-type: text/plain');
-  header(sprintf("X-Last-Line: %d", $current_line));
+  if ($current_line == -1) {
+    header('X-Last-Line: 0');
+  }
+  else {
+    header(sprintf("X-Last-Line: %d", $current_line));
+  }
   die($buffer);
 }
 
