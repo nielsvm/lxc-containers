@@ -173,6 +173,7 @@ function bootstrap_8_tune_apache {
 
   # Let Apache run as the $LXC_USER user.
   chown -Rfv $LXC_USER:$LXC_USER /var/lock/apache2
+  chown -Rfv $LXC_USER:$LXC_USER /var/log/apache2
   echo '' >> /etc/apache2/envvars
   echo "# FORCE APACHE TO RUN AS $LXC_USER" >> /etc/apache2/envvars
   echo "export APACHE_RUN_USER=$LXC_USER" >> /etc/apache2/envvars
