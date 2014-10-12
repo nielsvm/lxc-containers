@@ -1,67 +1,113 @@
 <?php
-if (isset($_GET['getLog'])) {
-  die(file_get_contents("/var/log/apache2/error.log"));
+define('LOGFILE', '/var/log/apache2/error.log');
+
+if (isset($_GET['last_line'])) {
+  $handle = fopen(LOGFILE, 'r');
+  $last_five_lines = array();
+  $last_line = (int)$_GET['last_line'];
+
+  while ($line = fgets($handle)) {
+    if (!isset($current_line)) $current_line = -1;
+    $current_line++;
+
+    if ($current_line <= $last_line) {
+      continue;
+    }
+    if ($last_line === 0) {
+      $last_five_lines[] = $line;
+      if (count($last_five_lines) > 5) {
+        array_shift($last_five_lines);
+      }
+    }
+    else {
+      print $line;
+    }
+  }
+  if (count($last_five_lines)) {
+    print implode("", $last_five_lines);
+  }
+  fclose($handle);
+  header('Content-type: text/plain');
+  header(sprintf("X-Last-Line: %d", $current_line));
+  die();
 }
 ?>
+<!DOCTYPE html>
 <html>
-  <title>error.log</title>
-  <style>
-    body{
-      background-color: black;
-      color: white;
-      font-family: "Lucida Console", Monaco, monospace;
-      font-size: 10px;
-      line-height: 20px;
-      overflow-y: hidden;
-    }
-    h4{
-      font-size: 18px;
-      line-height: 22px;
-      color: #353535;
-    }
-    #log {
-      position: relative;
-      top: -34px;
-    }
-    #scrollLock{
-      width:2px;
-      height: 2px;
-      overflow: visible;
-    }
-  </style>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
-  <script>
-    var interval = 10000;
-    setInterval(readLogFile, interval);
-    window.onload = readLogFile;
-    var pathname = window.location.pathname;
-    var scrollLock = true;
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+    <title><?=basename(LOGFILE);?></title>
+    <link rel="stylesheet" type="text/css" href="/min.css">
+    <style>
+      body {
+        background-color: black;
+        color: white;
+        overflow-y: hidden;
+        padding-left: 0.5em;
+      }
+      .ico {font: 25px Arial Unicode MS,Lucida Sans Unicode;}
+      #log {
+        position: relative;
+        top: -34px;
+        line-height: 20px;
+        font-size: 10px;
+      }
+      #enable {}
+      #controls a {
+        float: left;
+        margin-right: 0.5em;
+      }
+      #controls {
+        width: 100%;
+        height: 45px;
+        overflow: visible;
+      }
+    </style>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
+    <script>
+      var interval = 1000;
+      setInterval(readLogFile, interval);
+      window.onload = readLogFile;
+      var pathname = window.location.pathname;
+      var scrollLock = true;
+      var x_last_line = 0;
 
-    $(document).ready(function(){
-      $('.disableScrollLock').click(function(){
-        $("html,body").clearQueue()
-        $(".disableScrollLock").hide();
-        $(".enableScrollLock").show();
-        scrollLock = false;
+      $(document).ready(function(){
+        $('.clear').click(function(){
+          $("html,body").clearQueue()
+          $('#log').html('<br />');
+        });
+        $('.disable').click(function(){
+          $("html,body").clearQueue()
+          $(".disable").hide();
+          $(".enable").show();
+          scrollLock = false;
+        });
+        $('.enable').click(function(){
+          $("html,body").clearQueue()
+          $(".enable").hide();
+          $(".disable").show();
+          scrollLock = true;
+        });
       });
-      $('.enableScrollLock').click(function(){
-        $("html,body").clearQueue()
-        $(".enableScrollLock").hide();
-        $(".disableScrollLock").show();
-        scrollLock = true;
+      function readLogFile() {
+        $.get(pathname, { last_line : x_last_line }, function(data, textStatus, jqXHR) {
+          x_last_line = jqXHR.getResponseHeader('X-Last-Line');
+        $("#log").append(data);
+        if(scrollLock == true) { $('html,body').animate({scrollTop: $("#controls").offset().top}, interval) };
       });
-    });
-    function readLogFile() {
-      $.get(pathname, { getLog : true }, function(data) {
-              data = data.replace(new RegExp("\n", "g"), "<br />");
-      $("#log").html(data);
-      if(scrollLock == true) { $('html,body').animate({scrollTop: $("#scrollLock").offset().top}, interval) };
-    });
-    }
-  </script>
+      }
+    </script>
+  </head>
   <body>
-    <h4><?php echo $logFile; ?></h4>
-    <div id="log"></div>
-    <div id="scrollLock"> <input class="disableScrollLock" type="button" value="Disable Scroll Lock" /> <input class="enableScrollLock" style="display: none;" type="button" value="Enable Scroll Lock" /></div>
+    <h4><?=LOGFILE;?></h4>
+    <pre id="log"><br /></pre>
+    <div id="controls">
+      <a class="disable btn smooth btn-sm" href="#"><i class="ico">☟</i></a>
+      <a class="enable btn smooth btn-sm" style="display: none;" href="#"><i class="ico">⇦</i></a>
+      <a class="clear btn smooth btn-a btn-sm" href="#"><i class="ico">☒</i></a>
+    </div>
   </body>
 </html>
