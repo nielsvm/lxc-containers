@@ -63,7 +63,12 @@ foreach(scandir(getcwd()) as $project) {
         <p>
 <?php
   foreach($projects as $project) {
-    printf('<a class="btn smooth btn-b" href="http://%s.loc/" target="_blank">%s</a>&nbsp;', $project, $project);
+    if (file_exists(sprintf('%s/%s/.lxc-tool', getcwd(), $project))) {
+      printf('<a class="btn smooth btn-a" href="http://%s.loc/" target="_blank">%s</a>&nbsp;', $project, $project);
+    }
+    else {
+      printf('<a class="btn smooth" href="http://%s.loc/" target="_blank">%s</a>&nbsp;', $project, $project);
+    }
   }
 ?>
         </p>
