@@ -16,6 +16,7 @@ if (isset($_GET['last_line'])) {
   $handle = fopen(LOGFILE, 'r');
   $last_five_lines = array();
   $last_line = (int)$_GET['last_line'];
+  $buffer = '';
 
   while ($line = fgets($handle)) {
     if (!isset($current_line)) $current_line = -1;
@@ -31,16 +32,16 @@ if (isset($_GET['last_line'])) {
       }
     }
     elseif (!strstr($line, 'GET /?last_line=')) {
-      print $line;
+      $buffer .= $line;
     }
   }
   if (count($last_five_lines)) {
-    print implode("", $last_five_lines);
+    $buffer .= implode("", $last_five_lines);
   }
   fclose($handle);
   header('Content-type: text/plain');
   header(sprintf("X-Last-Line: %d", $current_line));
-  die();
+  die($buffer);
 }
 
 // Load the container variables, exported as PHP variables during initialization.
