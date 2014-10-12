@@ -15,8 +15,9 @@ IPV4_ADDRESS = mastercnf['network']['ipv4_address'].strip()
 DOMAINS = []
 for d in os.listdir(SCRIPTDIR):
   if d != '.git':
-    if os.path.isdir("%s/%s" % (SCRIPTDIR, d)):
-      DOMAINS.append("%s.loc" % d)
+    if d != 'default':
+      if os.path.isdir("%s/%s" % (SCRIPTDIR, d)):
+        DOMAINS.append("%s.loc" % d)
 DOMAINS = sorted(DOMAINS)
 
 # Generate the lines we'd like to inject.

@@ -5,11 +5,11 @@ require "/etc/lxc-containervars.php";
 
 // Generate a reliable list of projects.
 $projects = array();
-foreach(scandir(getcwd()) as $project) {
-  if (in_array($project, array('.', '..'))) {
+foreach(scandir('/var/www') as $project) {
+  if (in_array($project, array('.', '..', 'default'))) {
     continue;
   }
-  if (!is_dir($project)) {
+  if (!is_dir("/var/www/$project")) {
     continue;
   }
   $projects[] = $project;
@@ -23,7 +23,7 @@ foreach(scandir(getcwd()) as $project) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
     <title><?=gethostname();?></title>
-    <link rel="stylesheet" type="text/css" href="/.min.css">
+    <link rel="stylesheet" type="text/css" href="/min.css">
     <style media="screen" type="text/css">
       #details {
         display: none;
@@ -63,7 +63,7 @@ foreach(scandir(getcwd()) as $project) {
         <p>
 <?php
   foreach($projects as $project) {
-    if (file_exists(sprintf('%s/%s/.lxc-tool', getcwd(), $project))) {
+    if (file_exists(sprintf('/var/www/%s/.lxc-tool', $project))) {
       printf('<a class="btn smooth btn-a" href="http://%s.loc/" target="_blank">%s</a>&nbsp;', $project, $project);
     }
     else {
@@ -106,7 +106,7 @@ Successfully replaced the old hosts in /etc/hosts!
 
         <div>
           <h4>Different projects directory?</h4>
-          <p>Instead of the <code>www/</code> directory, you can mount your own projects directory as long as your user owns the files. This is achieved by changing the <code>config.ini</code> file of your container to mount your projects directory as <code>/var/www</code> in the container, a <code>halt -p</code> and restart of your container is sufficient. If you wish, you can copy <code>www/index.php</code> into the root of your own projects directory to retain this page.</p>
+          <p>Instead of the <code>www/</code> directory, you can mount your own projects directory as long as your user owns the files. This is achieved by changing the <code>config.ini</code> file of your container to mount your projects directory as <code>/var/www</code> in the container, a <code>halt -p</code> and restart of your container is sufficient.</p>
           <pre>/path/to/my/projects/on/host = /var/www</pre>
           <p>Alternatively, you can make symbolic links from within <code>www/</code> to your real code checkouts. Both Apache as this script will see them as real sites and everything will remain to work, plus, it makes it more flexible to swap codebases.</p>
         </div>
