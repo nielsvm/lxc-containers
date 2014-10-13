@@ -1,0 +1,11 @@
+{
+  "require": {
+    "phpseclib/phpseclib": "0.3.8",
+    "paudebau/h2o-php": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {
+      "LXC\\": ["src/"]
+    }
+  }
+}

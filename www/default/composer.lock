@@ -1,0 +1,174 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "44fb46d9f5fa3bf67d469fe142e9765a",
+    "packages": [
+        {
+            "name": "paudebau/h2o-php",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/paudebau/h2o-php.git",
+                "reference": "e3d93b6eb275529768b61d3e66c46946a3338a99"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/paudebau/h2o-php/zipball/e3d93b6eb275529768b61d3e66c46946a3338a99",
+                "reference": "e3d93b6eb275529768b61d3e66c46946a3338a99",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "h2o": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Luk (aka speedmax)",
+                    "email": "subjective@gmail.com",
+                    "homepage": "http://www.h2o-template.org/",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Ph. Audebaud",
+                    "email": "paudebau@gmail.com",
+                    "role": "Packagist publisher"
+                }
+            ],
+            "description": "A beautiful template engine for PHP in Django style",
+            "homepage": "http://github.com/paudebau/h2o-php",
+            "keywords": [
+                "django",
+                "engine",
+                "template"
+            ],
+            "time": "2013-04-12 14:50:39"
+        },
+        {
+            "name": "phpseclib/phpseclib",
+            "version": "0.3.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpseclib/phpseclib.git",
+                "reference": "5085202f1f37769aae59f9711c423f28159c9b29"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/5085202f1f37769aae59f9711c423f28159c9b29",
+                "reference": "5085202f1f37769aae59f9711c423f28159c9b29",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.0.0"
+            },
+            "require-dev": {
+                "phing/phing": "2.7.*",
+                "phpunit/phpunit": "4.0.*",
+                "sami/sami": "1.*",
+                "squizlabs/php_codesniffer": "1.*"
+            },
+            "suggest": {
+                "ext-gmp": "Install the GMP (GNU Multiple Precision) extension in order to speed up arbitrary precision integer arithmetic operations.",
+                "ext-mcrypt": "Install the Mcrypt extension in order to speed up a wide variety of cryptographic operations.",
+                "pear-pear/PHP_Compat": "Install PHP_Compat to get phpseclib working on PHP < 4.3.3."
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.3-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Crypt": "phpseclib/",
+                    "File": "phpseclib/",
+                    "Math": "phpseclib/",
+                    "Net": "phpseclib/",
+                    "System": "phpseclib/"
+                },
+                "files": [
+                    "phpseclib/Crypt/Random.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "phpseclib/"
+            ],
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jim Wigginton",
+                    "email": "terrafrost@php.net",
+                    "role": "Lead Developer"
+                },
+                {
+                    "name": "Patrick Monnerat",
+                    "email": "pm@datasphere.ch",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Andreas Fischer",
+                    "email": "bantu@phpbb.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Hans-Jürgen Petrich",
+                    "email": "petrich@tronic-media.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PHP Secure Communications Library - Pure-PHP implementations of RSA, AES, SSH2, SFTP, X.509 etc.",
+            "homepage": "http://phpseclib.sourceforge.net",
+            "keywords": [
+                "BigInteger",
+                "aes",
+                "asn.1",
+                "asn1",
+                "blowfish",
+                "crypto",
+                "cryptography",
+                "encryption",
+                "rsa",
+                "security",
+                "sftp",
+                "signature",
+                "signing",
+                "ssh",
+                "twofish",
+                "x.509",
+                "x509"
+            ],
+            "time": "2014-09-13 02:42:45"
+        }
+    ],
+    "packages-dev": [
+
+    ],
+    "aliases": [
+
+    ],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "paudebau/h2o-php": 20
+    },
+    "prefer-stable": false,
+    "platform": [
+
+    ],
+    "platform-dev": [
+
+    ]
+}

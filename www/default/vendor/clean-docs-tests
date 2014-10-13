@@ -1,0 +1,4 @@
+#!/bin/bash
+rm -Rfv paudebau/h2o-php/example/
+rm -Rfv phpseclib/phpseclib/tests/
+rm -Rfv phpseclib/phpseclib/travis

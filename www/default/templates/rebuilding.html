@@ -1,0 +1,45 @@
+{% extends 'templates/base.html' %}
+
+{% block title %}One moment please...{% endblock %}
+
+{% block head %}
+    <style>
+      #busy, #done, #failure {display: none;}
+      .msg {
+        margin-top: 2em;
+      }
+    </style>
+    <script>
+
+      // After a small delay, call home to reconfigure and redirect the user.
+      $(document).ready(function() {
+        $("#busy").slideDown();
+        $.get(window.location.pathname, {reconfigure: 1}, function(data) {
+          if (data == '') {
+            $("#done").slideDown();
+            setTimeout(function(){
+              window.location = '/?apache-reconfigured-' + (new Date()).getTime();
+            }, 1000);
+          }
+          else {
+            $("#failure").html(data);
+            $("#failure").slideDown();
+          }
+        });
+      });
+    </script>
+{% endblock %}
+
+{% block container %}
+      <div style="text-align: center;">
+        <div id="busy" class="msg">
+          <h4>Apache is being reconfigured...</h4>
+          <p><br /><img src="/static/loading.gif" /></p>
+        </div>
+        <div id="done" class="msg great">
+          <strong>Finished, redirecting...</strong>
+        </div>
+        <div id="failure" class="msg error">&nbsp;<br /></message>
+      </div>
+    </div>
+{% endblock %}

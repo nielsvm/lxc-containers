@@ -28,18 +28,6 @@ function append($line, &$buffer) {
     return;
   }
 
-  // Filter out lines about a VirtualDocumentRoot bug that's known.
-  if (strstr($line, "configuration error. Use 'LimitInternalRecursion'")) {
-    $buffer .= $line;
-    $buffer .= "\nThis logged Apache error is a known bug due the setup";
-    $buffer .= " with VirtualDocumentRoot that these containers use. The only";
-    $buffer .= "\nand unfortunate way to fix these 'Internal Server Error'";
-    $buffer .= " messages is to edit your .htaccess file and to put in";
-    $buffer .= "\n'RewriteBase /', in Drupal's .htaccess this is at line 110.";
-    $buffer .= "\n\n";
-    return;
-  }
-
   $buffer .= $line;
 }
 
@@ -93,8 +81,9 @@ require "/etc/lxc-containervars.php";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
     <title><?=basename(LOGFILE);?></title>
-    <link rel="stylesheet" type="text/css" href="/css/min.css">
-    <link rel="stylesheet" type="text/css" href="/css/icons.css">
+    <script src="/static/jquery.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="/static/min.css">
+    <link rel="stylesheet" type="text/css" href="/static/icons.css">
     <style>
       body {
         background-color: black;
@@ -119,7 +108,6 @@ require "/etc/lxc-containervars.php";
         overflow: visible;
       }
     </style>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
     <script>
       var interval = 3000;
       setInterval(readLogFile, interval);

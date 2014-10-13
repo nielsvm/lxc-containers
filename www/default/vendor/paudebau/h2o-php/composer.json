@@ -1,0 +1,29 @@
+{
+    "name": "paudebau/h2o-php",
+    "type": "library",
+    "description": "A beautiful template engine for PHP in Django style",
+    "keywords": ["template","engine","django"],
+    "homepage": "http://github.com/paudebau/h2o-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Taylor Luk (aka speedmax)",
+            "email": "subjective@gmail.com",
+            "homepage": "http://www.h2o-template.org/",
+            "role": "Developer"
+        }, {
+            "name": "Ph. Audebaud",
+            "email": "paudebau@gmail.com",
+            "homepage": "",
+            "role": "Packagist publisher"
+        }
+    ],
+    "require": {
+        "php": ">=5.1"
+    },
+    "autoload": {
+        "psr-0": {
+            "h2o": ""
+        }
+    }
+}
