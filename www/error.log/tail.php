@@ -12,6 +12,38 @@
 if (!defined('LOGFILE')) {
   exit;
 }
+
+/**
+ * Append a line to the log buffer.
+ *
+ * @param $line
+ *   The log line to append to the buffer.
+ * @param &$buffer
+ *   The buffer, shared by reference.
+ */
+function append($line, &$buffer) {
+
+  // Filter out access.log records that this script generated.
+  if (strstr($line, 'GET /?last_line=')) {
+    return;
+  }
+
+  // Filter out lines about a VirtualDocumentRoot bug that's known.
+  if (strstr($line, "configuration error. Use 'LimitInternalRecursion'")) {
+    $buffer .= $line;
+    $buffer .= "\nThis logged Apache error is a known bug due the setup";
+    $buffer .= " with VirtualDocumentRoot that these containers use. The only";
+    $buffer .= "\nand unfortunate way to fix these 'Internal Server Error'";
+    $buffer .= " messages is to edit your .htaccess file and to put in";
+    $buffer .= "\n'RewriteBase /', in Drupal's .htaccess this is at line 110.";
+    $buffer .= "\n\n";
+    return;
+  }
+
+  $buffer .= $line;
+}
+
+// If the ?last_line=0 parameter is passed in, we'll generate payload.
 if (isset($_GET['last_line'])) {
   $handle = fopen(LOGFILE, 'r');
   $last_five_lines = array();
@@ -31,12 +63,14 @@ if (isset($_GET['last_line'])) {
         array_shift($last_five_lines);
       }
     }
-    elseif (!strstr($line, 'GET /?last_line=')) {
-      $buffer .= $line;
+    else {
+      append($line, $buffer);
     }
   }
   if (count($last_five_lines)) {
-    $buffer .= implode("", $last_five_lines);
+    foreach ($last_five_lines as $line) {
+      append($line, $buffer);
+    }
   }
   fclose($handle);
   header('Content-type: text/plain');
