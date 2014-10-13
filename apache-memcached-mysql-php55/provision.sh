@@ -244,26 +244,7 @@ function bootstrap_10_tune_apache {
   echo '    Allow from all' >> /etc/apache2/sites-available/default
   echo '  </Directory>' >> /etc/apache2/sites-available/default
   echo '</Virtualhost>' >> /etc/apache2/sites-available/default
-
-  # Now add a vhost for virtual document root sharing.
-  echo '<Virtualhost *:80>' >> /etc/apache2/sites-available/vhosts
-  echo '  VirtualDocumentRoot "/var/www/%-2+"' >> /etc/apache2/sites-available/vhosts
-  echo '  ServerName vhosts.loc' >> /etc/apache2/sites-available/vhosts
-  echo '  ServerAlias *.loc' >> /etc/apache2/sites-available/vhosts
-  echo '  UseCanonicalName Off' >> /etc/apache2/sites-available/vhosts
-  echo '  ErrorLog ${APACHE_LOG_DIR}/error.log' >> /etc/apache2/sites-available/vhosts
-  echo '  LogLevel warn' >> /etc/apache2/sites-available/vhosts
-  echo '  CustomLog ${APACHE_LOG_DIR}/access.log combined' >> /etc/apache2/sites-available/vhosts
-  echo '' >> /etc/apache2/sites-available/vhosts
-  echo '  <Directory "/var/www/*">' >> /etc/apache2/sites-available/vhosts
-  echo '    Options Indexes FollowSymLinks MultiViews' >> /etc/apache2/sites-available/vhosts
-  echo '    AllowOverride All' >> /etc/apache2/sites-available/vhosts
-  echo '    Order allow,deny' >> /etc/apache2/sites-available/vhosts
-  echo '    Allow from all' >> /etc/apache2/sites-available/vhosts
-  echo '  </Directory>' >> /etc/apache2/sites-available/vhosts
-  echo '</Virtualhost>' >> /etc/apache2/sites-available/vhosts
-  a2ensite vhosts
-  etc-save "apache2: configured a VirtualDocumentRoot driven setup"
+  etc-save "apache2: rewrote the default vhost."
 
   # Start apache2 ordinarily.
   /etc/init.d/apache2 start
