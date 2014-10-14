@@ -12,4 +12,5 @@ return array(
     'Math' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'File' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'Crypt' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
+    'Bramus' => array($vendorDir . '/bramus/router/src'),
 );

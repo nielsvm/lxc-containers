@@ -2,3 +2,6 @@
 rm -Rfv paudebau/h2o-php/example/
 rm -Rfv phpseclib/phpseclib/tests/
 rm -Rfv phpseclib/phpseclib/travis
+rm -Rfv bramus/router/.git/
+rm -Rfv bramus/router/demo
+rm -Rfv bramus/router/tests
