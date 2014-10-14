@@ -12,16 +12,37 @@ define('FILEFORMAT', 'generated-%s');
  * Writes vhost configuration files to /etc/apache2.
  */
 class Writer {
+
+  /**
+   * The name of the template file to use.
+   * @var string
+   */
   private $template = NULL;
+
+  /**
+   * The listing object.
+   * @var LXC\VirtualHost\Listing
+   */
   private $listing = NULL;
+
+  /**
+   * The Net_SSH2 instance.
+   * @var Net_SSH2
+   */
   private $ssh = NULL;
 
+  /**
+   * Constructor.
+   */
   public function __construct($template, Listing $listing, Net_SSH2 $ssh) {
     $this->template = $template;
     $this->listing = $listing;
     $this->ssh = $ssh;
   }
 
+  /**
+   * Write the virtual hosts and restart Apache2.
+   */
   public function write() {
     $this->prepareFiles();
     $this->moveAndEnable();
@@ -31,7 +52,9 @@ class Writer {
     sleep(10);
   }
 
-  # Stage the files in /tmp, which we can access without SSH.
+  /**
+   * Stage the files in /tmp, which we can access without SSH.
+   */
   private function prepareFiles() {
     foreach ($this->listing as $vhost) {
       $template = new h2o($this->template, array('cache_dir'=>'/tmp'));
@@ -43,7 +66,9 @@ class Writer {
     }
   }
 
-  # Move the files into /etc/apache2 and enable the vhosts.
+  /**
+   * Move the files into /etc/apache2 and enable the vhosts.
+   */
   private function moveAndEnable() {
     $glob = sprintf(FILEFORMAT, '*');
     $this->ssh->exec("rm /etc/apache2/sites-available/$glob");

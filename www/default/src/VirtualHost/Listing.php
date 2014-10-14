@@ -1,5 +1,6 @@
 <?PHP
 namespace LXC\VirtualHost;
+Use LXC\Types\Dictionary;
 Use LXC\VirtualHost\VirtualHost;
 
 /**
@@ -10,12 +11,12 @@ define('WWW', '/var/www');
 /**
  * Represents all projects in /var/www.
  */
-class Listing implements \Iterator {
-  private $position = 0;
-  private $vhosts = array();
+class Listing extends Dictionary {
 
+  /**
+   * Constructor.
+   */
   public function __construct() {
-    $this->position = 0;
     foreach(scandir(WWW) as $node) {
       if (in_array($node, array('.', '..', 'default'))) {
         continue;
@@ -23,37 +24,19 @@ class Listing implements \Iterator {
       if (!is_dir(WWW . '/' . $node)) {
         continue;
       }
-      $this->vhosts[] = new VirtualHost(WWW . '/' . $node);
+      $this->data[] = new VirtualHost(WWW . '/' . $node);
     }
   }
 
-  # Detect if the current request didn't reach the right codebase.
+  /**
+   * Detect if the current request didn't reach the right codebase.
+   */
   public function uninstalledVhostReached() {
-    foreach ($this->vhosts as $vhost) {
+    foreach ($this->data as $vhost) {
       if ($_SERVER['HTTP_HOST'] == $vhost->domain) {
         return TRUE;
       }
     }
     return FALSE;
-  }
-
-  function rewind() {
-    $this->position = 0;
-  }
-
-  function current() {
-    return $this->vhosts[$this->position];
-  }
-
-  function key() {
-    return $this->position;
-  }
-
-  function next() {
-    ++$this->position;
-  }
-
-  function valid() {
-    return isset($this->vhosts[$this->position]);
   }
 }

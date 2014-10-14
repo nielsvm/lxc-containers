@@ -1,0 +1,71 @@
+{% extends 'templates/base.html' %}
+
+{% block title %}{{ file.name }}{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="/static/logtail.css">
+    <link rel="stylesheet" type="text/css" href="/static/icons.css">
+    <script>
+      var interval = 3000;
+      setInterval(readLogFile, interval);
+      window.onload = readLogFile;
+      var pathname = window.location.pathname;
+      var scrollLock = true;
+      var x_last_line = 0;
+      var paused = false;
+
+      $(document).ready(function(){
+        $('#clear').click(function(){
+          $("html,body").clearQueue()
+          $('#log').html('<br />');
+        });
+        $('#noscroll').click(function(){
+          $("html,body").clearQueue()
+          $("#noscroll").hide();
+          $("#scroll").show();
+          scrollLock = true;
+        });
+        $('#scroll').click(function(){
+          $("html,body").clearQueue()
+          $("#scroll").hide();
+          $("#noscroll").show();
+          scrollLock = false;
+        });
+        $('#continue').click(function(){
+          $("html,body").clearQueue()
+          $("#pause").show();
+          $("#continue").hide();
+          paused = false;
+        });
+        $('#pause').click(function(){
+          $("html,body").clearQueue()
+          $("#continue").show();
+          $("#pause").hide();
+          paused = true;
+        });
+      });
+      function readLogFile() {
+        if (paused) {
+          return;
+        }
+        $.get(pathname, { last_line : x_last_line }, function(data, textStatus, jqXHR) {
+          x_last_line = jqXHR.getResponseHeader('X-Last-Line');
+          $("#log").append(data);
+          if(scrollLock == true) { $('html,body').animate({scrollTop: $("#controls").offset().top}, interval) };
+        });
+      }
+    </script>
+{% endblock %}
+
+{% block container %}
+    <h4>{{ file.path }}</h4>
+    <pre id="log"><br /></pre>
+    <div id="controls">
+      <a id="home" class="icon-home btn smooth btn-sm" href="http://{{ lxc.ipv4_address }}" target="_blank" title="Home"></a>
+      <a id="noscroll" class="icon-arrow-right hidden btn smooth btn-a btn-sm" href="#" title="Enable scroll lock"></a>
+      <a id="scroll" class="icon-arrow-down btn smooth btn-a btn-sm" href="#" title="Disable scroll lock"></a>
+      <a id="continue" class="icon-play hidden btn smooth btn-a btn-sm" href="#" title="Continue"></a>
+      <a id="pause" class="icon-pause btn smooth btn-a btn-sm" href="#" title="Pause"></a>
+      <a id="clear" class="icon-arrow-up btn smooth btn-a btn-sm" href="#" title="Clear"></a>
+    </div>
+{% endblock %}
