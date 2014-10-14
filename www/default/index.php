@@ -12,14 +12,12 @@ require 'vendor/autoload.php';
   'templates/vhost.conf');
 
 /**
- * Initialize the router and template engine.
+ * Configure the router.
  */
 $router = new \Bramus\Router\Router();
 $t = new \h2o();
 
-/**
- * ROUTE /: index listing.
- */
+# ROUTE /: index listing.
 $router->get('/', function() use ($t) {
   $t->loadTemplate('templates/listing.html');
   print $t->render(
@@ -30,14 +28,10 @@ $router->get('/', function() use ($t) {
       'hostname' => gethostname()));
 });
 
-/**
- * ROUTE /php: PHP information.
- */
+# ROUTE /php: PHP information.
 $router->get('/php', function() {phpinfo();});
 
-/**
- * ROUTE /$LOGFILE: tail -f style log viewer.
- */
+# ROUTE /$LOGFILE: tail -f style log viewer.
 foreach (\LXC\Logging\Files::get() as $logfile) {
   $path = '/' . $logfile->name;
   $router->get($path, function() use ($t, $logfile) {
