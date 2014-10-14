@@ -48,7 +48,7 @@
         if (paused) {
           return;
         }
-        $.get(pathname, { last_line : x_last_line }, function(data, textStatus, jqXHR) {
+        $.get(pathname + '/' + x_last_line, {}, function(data, textStatus, jqXHR) {
           x_last_line = jqXHR.getResponseHeader('X-Last-Line');
           $("#log").append(data);
           if(scrollLock == true) { $('html,body').animate({scrollTop: $("#controls").offset().top}, interval) };

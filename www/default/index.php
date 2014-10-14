@@ -14,13 +14,47 @@ require 'vendor/autoload.php';
   'templates/vhost.conf');
 
 /**
- * Render the index listing.
+ * Initialize the router and template engine.
  */
-$template = new \h2o('templates/listing.html');
-print $template->render(
-  array(
-    'lxc' => new \LXC\Container\Variables(),
-    'vhosts' => \LXC\VirtualHost\Listing::get(),
-    'hostname' => gethostname()
-  )
-);
+$router = new \Bramus\Router\Router();
+$t = new \h2o();
+
+/**
+ * ROUTER REGISTRY: Index listing.
+ */
+$router->get('/', function() use ($t) {
+  $t->loadTemplate('templates/listing.html');
+  print $t->render(
+    array(
+      'lxc' => \LXC\Container\Variables::get(),
+      'vhosts' => \LXC\VirtualHost\Listing::get(),
+      'logfiles' => \LXC\Logging\Files::get(),
+      'hostname' => gethostname()
+    )
+  );
+});
+
+/**
+ * ROUTER REGISTRY: log tail UI for each log file.
+ */
+foreach (\LXC\Logging\Files::get() as $logfile) {
+  $path = '/' . $logfile->name;
+  $router->get($path, function() use ($t, $logfile) {
+    $t->loadTemplate('templates/logtail.html');
+    print $t->render(
+      array(
+        'file' => $logfile,
+        'lxc' => \LXC\Container\Variables::get(),
+        'hostname' => gethostname()
+      )
+    );
+  });
+  $router->get($path . '/(\d+)', function($from_line) use ($t, $logfile) {
+    $logfile->sendPayload((int) $from_line);
+  });
+}
+
+/**
+ * Dispatch the request.
+ */
+$router->run();

@@ -12,23 +12,21 @@
         border-left: 5px solid #C0C0C0;
       }
       code {
-        background-color: #F7F7F7;
         margin-left: 0.1em;
         margin-right: 0.1em;
         letter-spacing: 0.05em;
         color: #800080;
       }
+      a code {
+        color: #FFFFFF;
+      }
     </style>
     <script type="text/javascript">
-      <!--
-        function toggle_visibility(id) {
-          var e = document.getElementById(id);
-          if(e.style.display == 'block')
-            e.style.display = 'none';
-          else
-            e.style.display = 'block';
-        }
-      //-->
+      $(document).ready(function(){
+        $('#help').click(function(){
+          $("#details").toggle();
+        });
+      });
     </script>
 {% endblock %}
 
@@ -37,19 +35,19 @@
         <h2>{{ hostname }}</h2>
         <p>Welcome to your container powered webserver!</p>
       </div>
-
       <div id="sites">
         <p>
-        {% for vhost in vhosts %}
-          {% if vhost.tool %}
-            <a class="btn smooth btn-a" href="http://{{ vhost.domain }}/" target="_blank">{{ vhost.name }}</a>&nbsp;
-          {% else %}
-            <a class="btn smooth" href="http://{{ vhost.domain }}/" target="_blank">{{ vhost.name }}</a>&nbsp;
-          {% endif %}
-        {% endfor %}
+{% for vhost in vhosts %}{% if vhost.tool %}
+          <a class="btn smooth btn-a" href="http://{{ vhost.domain }}/" target="_blank">{{ vhost.name }}</a>&nbsp;
+{% else %}
+          <a class="btn smooth" href="http://{{ vhost.domain }}/" target="_blank">{{ vhost.name }}</a>&nbsp;
+{% endif %}{% endfor %}
         </p>
         <p>
-          <a class="btn smooth btn-a btn-sm" href="#" onclick="toggle_visibility('details');">help</a>
+          <a id="help" class="btn smooth btn-a btn-sm" href="#"><b>help</b></a>
+{% for logfile in logfiles %}
+          <a class="btn smooth btn-a btn-sm" href="/{{ logfile.name }}" target="_blank"><code>{{ logfile.name }}</code></a>
+{% endfor %}
         </p>
       </div>
       <div id="details">
@@ -59,7 +57,7 @@
             Projects placed in the <code>www/</code> directory are automatically set up as virtual hosts with their own domain names. For instance, a directory <code>mysite</code> can be reached via <code>http://mysite.loc/</code> after you configured its <code>/etc/hosts</code> record. You can <i>easily</i> update your hosts file with the <code>www/update-etc-hosts</code> script:
           </p>
           <div class="msg">
-  <pre>$ cd www/
+            <pre>$ cd www/
 $ ./update-etc-hosts
 [sudo] password for {{ lxc.user }}:
 Successfully replaced the old hosts in /etc/hosts!
@@ -73,14 +71,13 @@ Successfully replaced the old hosts in /etc/hosts!
             But if that isn't your thing, you can use these auto-generated lines:
           </p>
           <div class="msg">
-<pre>
+            <pre>
 {% for vhost in vhosts %}
 {{ lxc.ipv4_address }}        {{ vhost.domain }}
 {% endfor %}
-</pre>
+            </pre>
           </div>
         </div>
-
         <div>
           <h4>Different projects directory?</h4>
           <p>Instead of the <code>www/</code> directory, you can mount your own projects directory as long as your user owns the files and <code>www/default</code> remains. This is achieved by changing the <code>config.ini</code> file of your container to mount your projects directory as <code>/var/www</code> in the container, a <code>halt -p</code> and restart of your container is sufficient.</p>

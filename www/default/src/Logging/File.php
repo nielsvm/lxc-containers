@@ -114,7 +114,7 @@ class File {
   private function getPayloadBufferAppended($line, &$buffer) {
 
     // Filter out access.log records that this script generated.
-    if (strstr($line, 'GET /?last_line=')) {
+    if (strstr($line, 'GET /access.log')) {
       return;
     }
 

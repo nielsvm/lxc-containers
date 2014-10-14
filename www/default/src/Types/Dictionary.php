@@ -139,4 +139,19 @@ abstract class Dictionary implements \ArrayAccess, \Iterator {
     $this->keys = array_keys($this->data);
     return isset($this->keys[$this->index]);
   }
+
+  /**
+   * Retrieve a statically cached copy of a Listing() instance.
+   */
+  static public function get() {
+    static $copies;
+    $class = get_called_class();
+    if (is_null($copies)) {
+      $copies = array();
+    }
+    if (!isset($copies[$class])) {
+      $copies[$class] = new $class();
+    }
+    return $copies[$class];
+  }
 }

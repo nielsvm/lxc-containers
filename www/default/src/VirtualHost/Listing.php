@@ -27,15 +27,4 @@ class Listing extends Dictionary {
       $this->data[] = new VirtualHost(WWW . '/' . $node);
     }
   }
-
-  /**
-   * Retrieve a statically cached copy of a Listing() instance.
-   */
-  static public function get() {
-    static $copy;
-    if (is_null($copy)) {
-      $copy = new Listing();
-    }
-    return $copy;
-  }
 }
