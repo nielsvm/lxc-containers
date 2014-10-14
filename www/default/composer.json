@@ -1,7 +1,8 @@
 {
   "require": {
     "phpseclib/phpseclib": "0.3.8",
-    "paudebau/h2o-php": "dev-master"
+    "paudebau/h2o-php": "dev-master",
+    "bramus/router": "dev-master"
   },
   "autoload": {
     "psr-4": {
