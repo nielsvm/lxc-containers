@@ -2,50 +2,25 @@
 
 // Load the autoloader and request the classes we need.
 require 'vendor/autoload.php';
-use LXC\VirtualHost\Listing;
-use LXC\VirtualHost\Writer;
-use LXC\Container\Variables;
 
 /**
- * Construct the Listing object, which holds all virtual hosts.
+ * Let the provisioner automatically intervene and reconfigure Apache. This only
+ * happens when users try to access a domain that Apache isn't aware off yet and
+ * the provisioner will then - just in place - install vhost files and reload.
  */
-$vhosts = Listing::get();
+LXC\VirtualHost\ApacheProvisioner::check(
+  'root', 'root', // SSH credentials used to execute commands as root.
+  'templates/rebuilding.html',
+  'templates/vhost.conf');
 
 /**
- * Handle new virtual hosts.
+ * Render the index listing.
  */
-if ($vhosts->uninstalledVhostReached()) {
-
-  // Render the one-moment page to the user.
-  if (!isset($_GET['reconfigure'])) {
-    $template = new h2o('templates/rebuilding.html');
-    print $template->render();
-  }
-
-  // Open a SSH connection and reconfigure Apache if ?reconfigure is passed.
-  else {
-    $ssh = new Net_SSH2('localhost');
-    if ($ssh->login('root', 'root')) {
-      $w = new Writer('templates/vhost.conf', $vhosts, $ssh);
-      $w->write();
-      $ssh->disconnect();
-    }
-    else {
-      die('Cannot connect to the container as "root", "root" over SSH!');
-    }
-  }
-}
-
-/**
- * Normally, just render the index listing.
- */
-else {
-  $template = new h2o('templates/listing.html');
-  print $template->render(
-    array(
-      'lxc' => new Variables(),
-      'vhosts' => $vhosts,
-      'hostname' => gethostname()
-    )
-  );
-}
+$template = new h2o('templates/listing.html');
+print $template->render(
+  array(
+    'lxc' => new LXC\Container\Variables(),
+    'vhosts' => LXC\VirtualHost\Listing::get(),
+    'hostname' => gethostname()
+  )
+);

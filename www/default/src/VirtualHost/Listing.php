@@ -29,18 +29,6 @@ class Listing extends Dictionary {
   }
 
   /**
-   * Detect if the current request didn't reach the right codebase.
-   */
-  public function uninstalledVhostReached() {
-    foreach ($this->data as $vhost) {
-      if ($_SERVER['HTTP_HOST'] == $vhost->domain) {
-        return TRUE;
-      }
-    }
-    return FALSE;
-  }
-
-  /**
    * Retrieve a statically cached copy of a Listing() instance.
    */
   static public function get() {
