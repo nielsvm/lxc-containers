@@ -9,7 +9,7 @@ You can compare this project a little bit with `varnish-lxc` but this is intenti
 # Installation
 All you need is *Ubuntu 14.04/trusty* and LXC installed (`apt-get install lxc-templates`) on your computer.
 
-To prevent any common pitfalls, make sure to clone this somewhere within (and/or underneath) your Linux home directory and as your own Linux user. Also make sure to uninstall any of the software the container you are going to use provides, so that for instance Apache won't claim a TCP port your main machine uses.
+To prevent any common pitfalls, make sure to clone this somewhere within (and/or underneath) your Linux home directory and as your own Linux user. Also make sure to uninstall any of the software the container you are going to use provides, so that for instance Apache won't claim a TCP port your main machine uses. It makes sense to keep `mysql-server` on your host installed and to use the containers that don't ship MySQL, as this makes it easy to switch containers but not databases.
 
 ```
 git clone https://github.com/nielsvm/lxc-containers.git
