@@ -104,6 +104,10 @@ function bootstrap_5_tune_server {
 # Bootstrap phase 6: tune PHP and its extensions.
 function bootstrap_6_tune_php {
 
+  # Enable error display as coding else gets quite a bit harder.
+  sed -i "s/display_errors = .*/display_errors = On/" /etc/php5/apache2/php.ini
+  etc-save "php: enabled display_errors"
+
   # Tune APC.
   echo 'apc.rfc1867 = 1' >> /etc/php5/mods-available/apc.ini
   echo 'apc.shm_size = 128M' >> /etc/php5/mods-available/apc.ini

@@ -136,6 +136,10 @@ function bootstrap_6_tune_server {
 # Bootstrap phase 7: tune PHP and its extensions.
 function bootstrap_7_tune_php {
 
+  # Enable error display as coding else gets quite a bit harder.
+  sed -i "s/display_errors = .*/display_errors = On/" /etc/php5/apache2/php.ini
+  etc-save "php: enabled display_errors"
+
   # OPCACHE: enable the opcache as it doesn't seem to be by default.
   echo 'opcache.enable=On' >> /etc/php5/mods-available/opcache.ini
   echo 'opcache.memory_consumption=128' >> /etc/php5/mods-available/opcache.ini
