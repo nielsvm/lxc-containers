@@ -9,7 +9,7 @@ use LXC\Container\Variables;
 /**
  * Construct the Listing object, which holds all virtual hosts.
  */
-$vhosts = new Listing();
+$vhosts = Listing::get();
 
 /**
  * Handle new virtual hosts.

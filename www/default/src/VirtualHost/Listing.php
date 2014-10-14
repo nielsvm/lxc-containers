@@ -39,4 +39,15 @@ class Listing extends Dictionary {
     }
     return FALSE;
   }
+
+  /**
+   * Retrieve a statically cached copy of a Listing() instance.
+   */
+  static public function get() {
+    static $copy;
+    if (is_null($copy)) {
+      $copy = new Listing();
+    }
+    return $copy;
+  }
 }
