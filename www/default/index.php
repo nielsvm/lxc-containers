@@ -1,6 +1,4 @@
 <?PHP
-
-// Load the autoloader and request the classes we need.
 require 'vendor/autoload.php';
 
 /**
@@ -20,7 +18,7 @@ $router = new \Bramus\Router\Router();
 $t = new \h2o();
 
 /**
- * ROUTER REGISTRY: Index listing.
+ * ROUTE /: index listing.
  */
 $router->get('/', function() use ($t) {
   $t->loadTemplate('templates/listing.html');
@@ -29,13 +27,11 @@ $router->get('/', function() use ($t) {
       'lxc' => \LXC\Container\Variables::get(),
       'vhosts' => \LXC\VirtualHost\Listing::get(),
       'logfiles' => \LXC\Logging\Files::get(),
-      'hostname' => gethostname()
-    )
-  );
+      'hostname' => gethostname()));
 });
 
 /**
- * ROUTER REGISTRY: log tail UI for each log file.
+ * ROUTE /$LOGFILE: tail -f style log viewer.
  */
 foreach (\LXC\Logging\Files::get() as $logfile) {
   $path = '/' . $logfile->name;
@@ -45,9 +41,7 @@ foreach (\LXC\Logging\Files::get() as $logfile) {
       array(
         'file' => $logfile,
         'lxc' => \LXC\Container\Variables::get(),
-        'hostname' => gethostname()
-      )
-    );
+        'hostname' => gethostname()));
   });
   $router->get($path . '/(\d+)', function($from_line) use ($t, $logfile) {
     $logfile->sendPayload((int) $from_line);
