@@ -1,7 +1,7 @@
 <?PHP
 namespace LXC\Logging;
-use LXC\Types\Dictionary;
-use LXC\Logging\File;
+use \LXC\Types\Dictionary;
+use \LXC\Logging\File;
 
 /**
  * The directory holding all Apache logs.

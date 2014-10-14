@@ -1,7 +1,7 @@
 <?PHP
 namespace LXC\VirtualHost;
-use Net_SSH2;
-use h2o;
+use \Net_SSH2;
+use \h2o;
 
 /**
  * The name of the vhost files.

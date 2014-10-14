@@ -2,8 +2,8 @@
 
 // Load the autoloader and request the classes we need.
 require 'vendor/autoload.php';
-use LXC\Container\Variables;
-use LXC\Logging\File;
+use \LXC\Container\Variables;
+use \LXC\Logging\File;
 
 // Initialize the file object for this log file.
 $file = new File('/var/log/apache2/error.log');

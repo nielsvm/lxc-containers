@@ -1,6 +1,6 @@
 <?PHP
 namespace LXC\Container;
-use LXC\Types\Dictionary;
+use \LXC\Types\Dictionary;
 
 /**
  * Information about the LXC container.

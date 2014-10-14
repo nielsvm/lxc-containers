@@ -8,7 +8,7 @@ require 'vendor/autoload.php';
  * happens when users try to access a domain that Apache isn't aware off yet and
  * the provisioner will then - just in place - install vhost files and reload.
  */
-LXC\VirtualHost\ApacheProvisioner::check(
+\LXC\VirtualHost\ApacheProvisioner::check(
   'root', 'root', // SSH credentials used to execute commands as root.
   'templates/rebuilding.html',
   'templates/vhost.conf');
@@ -16,11 +16,11 @@ LXC\VirtualHost\ApacheProvisioner::check(
 /**
  * Render the index listing.
  */
-$template = new h2o('templates/listing.html');
+$template = new \h2o('templates/listing.html');
 print $template->render(
   array(
-    'lxc' => new LXC\Container\Variables(),
-    'vhosts' => LXC\VirtualHost\Listing::get(),
+    'lxc' => new \LXC\Container\Variables(),
+    'vhosts' => \LXC\VirtualHost\Listing::get(),
     'hostname' => gethostname()
   )
 );

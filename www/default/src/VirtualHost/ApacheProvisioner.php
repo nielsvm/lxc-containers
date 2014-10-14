@@ -1,9 +1,9 @@
 <?PHP
 namespace LXC\VirtualHost;
-use LXC\VirtualHost\Listing;
-use LXC\VirtualHost\Writer;
-use h2o;
-use Net_SSH2;
+use \LXC\VirtualHost\Listing;
+use \LXC\VirtualHost\Writer;
+use \h2o;
+use \Net_SSH2;
 
 /**
  * Represents all projects in /var/www.

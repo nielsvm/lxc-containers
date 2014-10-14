@@ -1,7 +1,7 @@
 <?PHP
 namespace LXC\VirtualHost;
-Use LXC\Types\Dictionary;
-Use LXC\VirtualHost\VirtualHost;
+Use \LXC\Types\Dictionary;
+Use \LXC\VirtualHost\VirtualHost;
 
 /**
  * The hardcoded document root (as mounted within the container).
