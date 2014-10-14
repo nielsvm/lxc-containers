@@ -4,7 +4,7 @@ require 'vendor/autoload.php';
 /**
  * Let the provisioner automatically intervene and reconfigure Apache. This only
  * happens when users try to access a domain that Apache isn't aware off yet and
- * the provisioner will then - just in place - install vhost files and reload.
+ * the provisioner will then - just in time - install vhost files and reload.
  */
 \LXC\VirtualHost\ApacheProvisioner::check(
   'root', 'root', // SSH credentials used to execute commands as root.
