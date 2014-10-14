@@ -31,6 +31,11 @@ $router->get('/', function() use ($t) {
 });
 
 /**
+ * ROUTE /php: PHP information.
+ */
+$router->get('/php', function() {phpinfo();});
+
+/**
  * ROUTE /$LOGFILE: tail -f style log viewer.
  */
 foreach (\LXC\Logging\Files::get() as $logfile) {

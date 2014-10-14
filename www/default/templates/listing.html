@@ -44,7 +44,8 @@
 {% endif %}{% endfor %}
         </p>
         <p>
-          <a id="help" class="btn smooth btn-a btn-sm" href="#"><b>help</b></a>
+          <a id="help" class="btn smooth btn-b btn-sm" href="#"><b>help</b></a>
+          <a class="btn smooth btn-a btn-sm" href="/php" target="_blank">PHP info</a>
 {% for logfile in logfiles %}
           <a class="btn smooth btn-a btn-sm" href="/{{ logfile.name }}" target="_blank"><code>{{ logfile.name }}</code></a>
 {% endfor %}
@@ -63,8 +64,7 @@ $ ./update-etc-hosts
 Successfully replaced the old hosts in /etc/hosts!
 
 # update-etc-hosts - DO NOT TOUCH THIS SECTION! #############
-{{ lxc.ipv4_address }} access.loc error.loc adminer.loc
-{{ lxc.ipv4_address }} opcode-cache.loc
+{{ lxc.ipv4_address }} adminer.loc opcode-cache.loc
 # /update-etc-hosts #########################################</pre>
           </div>
           <p>
