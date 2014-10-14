@@ -4,7 +4,7 @@
 require 'vendor/autoload.php';
 use LXC\VirtualHost\Listing;
 use LXC\VirtualHost\Writer;
-use LXC\ContainerVars;
+use LXC\Container\Variables;
 
 /**
  * Construct the Listing object, which holds all virtual hosts.
@@ -43,7 +43,7 @@ else {
   $template = new h2o('templates/listing.html');
   print $template->render(
     array(
-      'lxc' => new ContainerVars(),
+      'lxc' => new Variables(),
       'vhosts' => $vhosts,
       'hostname' => gethostname()
     )
