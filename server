@@ -24,7 +24,7 @@ def START(arguments, container_name):
     mount(src, dst.replace('//', '/'))
 
   # Start the container.
-  call(['lxc-start', "-n%s" % c['name'], '/sbin/init'])
+  call(['lxc-start', "-F", "-n%s" % c['name'], '/sbin/init'])
 
   # Sleep a little and umount all mounts.
   sleep(2)
@@ -116,10 +116,11 @@ def initialize(c):
           "-t%s" % c['template'],
           "-n%s" % c['name']])
 
-    # Configure the static IP address.
+    # Configure the static IP address and silence app armor (since Ubuntu 14.10)
     with open("%s/config" % c['lxcdir'], "a") as config:
       config.write("\n# CUSTOM CONFIGURATION FOR %s\n" % c['name'])
       config.write("lxc.network.ipv4 = %s/16\n" % c['ipv4_address'])
+      config.write("lxc.aa_allow_incomplete = 1")
 
     # Install the provisioner scripts.
     for script in c['scripts']:
@@ -150,7 +151,7 @@ def initialize(c):
 
     # Start the instance for the first time, the provisioner will run and shut
     # itself down at the very end of the process. A proper mount follows.
-    call(["lxc-start", "-n%s" % c['name'], '/sbin/init'])
+    call(["lxc-start", "-F", "-n%s" % c['name'], '/sbin/init'])
 
 #
 # Mount the given src,dst bind mount instruction.
