@@ -20,8 +20,9 @@
     </style>
     <script type="text/javascript">
       $(document).ready(function(){
-        $('#help').click(function(){
-          $("#details").toggle();
+        $('.help').click(function(){
+          $("#sites").toggle();
+          $("#details").fadeToggle();
         });
       });
     </script>
@@ -33,8 +34,9 @@
         <p>Welcome to your container powered webserver!</p>
       </div>
 {% if hostsoutdated %}
-      <div class="msg warn">
-        <strong>Your <code>/etc/hosts</code> file is outdated, run the <code>www/update-etc-hosts</code> script!</strong>
+      <div class="msg error">
+        <strong>Your <code>/etc/hosts</code> file is outdated, run the <code>www/update-etc-hosts</code> script!&nbsp;</strong>
+        <a class="help btn smooth btn-c btn-sm" href="#"><b>help</b></a>
       </div>
 {% endif %}
       <div id="sites">
@@ -45,8 +47,10 @@
           <a class="btn smooth" href="http://{{ vhost.domain }}/" target="_blank">{{ vhost.name }}</a>&nbsp;
 {% endif %}{% endfor %}
         </p>
+      </div>
+      <div id="buttons">
         <p>
-          <a id="help" class="btn smooth btn-b btn-sm" href="#"><b>help</b></a>
+          <a class="help btn smooth btn-b btn-sm" href="#"><b>help</b></a>
           <a class="btn smooth btn-a btn-sm" href="/php" target="_blank">PHP info</a>
 {% for logfile in logfiles %}
           <a class="btn smooth btn-a btn-sm" href="/{{ logfile.name }}" target="_blank"><code>{{ logfile.name }}</code></a>
@@ -57,7 +61,7 @@
         <div>
           <h3>How it works</h3>
           <p>
-            Projects placed in the <code>www/</code> directory are automatically set up as virtual hosts with their own domain names. For instance, a directory <code>mysite</code> can be reached via <code>http://mysite.loc/</code> after you configured its <code>/etc/hosts</code> record. You can <i>easily</i> update your hosts file with the <code>www/update-etc-hosts</code> script:
+            Projects placed in the <code>www/</code> directory are automatically set up as virtual hosts with their own domain names. For instance, a directory <code>mysite</code> can be reached via <code>http://mysite.loc/</code> after you configured its <code>/etc/hosts</code> record. You can <i>easily</i> update your hosts file with the <code>update-etc-hosts</code> script. This will append or just replace a previously generated stanza, but it will not touch anything else in your hosts file:
           </p>
           <div class="msg grey">
             <pre>$ cd www/
@@ -74,9 +78,11 @@ Successfully replaced the old hosts in /etc/hosts!
           </p>
           <div class="msg grey">
             <pre>
+# update-etc-hosts - DO NOT TOUCH THIS SECTION! #############
 {% for vhost in vhosts %}
 {{ lxc.ipv4_address }}        {{ vhost.domain }}
 {% endfor %}
+# /update-etc-hosts #########################################
             </pre>
           </div>
         </div>
