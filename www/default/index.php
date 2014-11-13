@@ -49,6 +49,15 @@ foreach (\LXC\Logging\Files::get() as $logfile) {
 }
 
 /**
+ * Redirect on unmatched routes.
+ */
+$router->set404(function() {
+  header('HTTP/1.1 301 Moved Permanently');
+  header('Location: /');
+  echo '404, route not found!';
+});
+
+/**
  * Dispatch the request.
  */
 $router->run();
