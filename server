@@ -122,6 +122,22 @@ def initialize(c):
       config.write("lxc.network.ipv4 = %s/16\n" % c['ipv4_address'])
       config.write("lxc.aa_allow_incomplete = 1")
 
+    # Statically configure the (Debian) container since lxc.network.ipv4 doesn't
+    # work reliably anymore since Ubuntu 14.10, this does ;).
+    if os.path.exists("%s/etc/network/interfaces" % c['root']):
+      with open("%s/etc/network/interfaces" % c['root'], "w") as interfaces:
+        interfaces.write("auto lo\n")
+        interfaces.write("iface lo inet loopback\n\n")
+        interfaces.write("auto eth0\n")
+        interfaces.write("iface eth0 inet static\n")
+        interfaces.write("        address %s\n" % c['ipv4_address'])
+        interfaces.write("        netmask 255.255.255.0\n")
+        interfaces.write("        gateway %s\n" % c['ipv4_address_host'])
+        interfaces.write("        dns-nameservers %s\n" % c['ipv4_address_host'])
+    if os.path.exists("%s/etc/resolv.conf" % c['root']):
+      with open("%s/etc/resolv.conf" % c['root'], "w") as resolvconf:
+        resolvconf.write("nameserver %s\n" % c['ipv4_address_host'])
+
     # Install the provisioner scripts.
     for script in c['scripts']:
       service = os.path.basename(script).replace('.sh', '')
