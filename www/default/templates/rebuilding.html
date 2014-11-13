@@ -3,18 +3,11 @@
 {% block title %}One moment please...{% endblock %}
 
 {% block head %}
+    <link rel="stylesheet" type="text/css" href="/static/msgs.css">
     <style>
       #busy, #done, #failure {display: none;}
       .msg {
         margin-top: 2em;
-      }
-      .error {
-        border-color: #e44;
-        background: #fdd;
-      }
-      .great {
-        border-color: #2d2;
-        background: #dfd;
       }
     </style>
     <script>
@@ -44,7 +37,7 @@
           <h4>Apache is being reconfigured...</h4>
           <p><br /><img src="/static/loading.gif" /></p>
         </div>
-        <div id="done" class="msg great">
+        <div id="done" class="msg ok">
           <strong>Finished, redirecting...</strong>
         </div>
         <div id="failure" class="msg error">&nbsp;<br /></message>

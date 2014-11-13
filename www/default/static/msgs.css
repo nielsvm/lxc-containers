@@ -1,0 +1,16 @@
+.grey {
+  background-color: #F7F7F7;
+  border-left: 5px solid #C0C0C0;
+}
+.warn {
+  border-color: #B69200;
+  background: #FFE623;
+}
+.error {
+  border-color: #e44;
+  background: #fdd;
+}
+.ok {
+  border-color: #2d2;
+  background: #dfd;
+}
