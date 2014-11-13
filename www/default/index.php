@@ -23,8 +23,8 @@ $router->get('/', function() use ($t) {
   print $t->render(
     array(
       'lxc' => \LXC\Container\Variables::get(),
-      'vhosts' => $vhosts = \LXC\VirtualHost\Listing::get(),
-      'hostsoutdated' => $vhosts->hostsoutdated,
+      'vhosts' => \LXC\VirtualHost\Listing::get(),
+      'hostsoutdated' => \LXC\VirtualHost\Listing::are_hosts_outdated(),
       'logfiles' => \LXC\Logging\Files::get(),
       'hostname' => gethostname()));
 });

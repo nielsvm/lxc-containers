@@ -14,11 +14,6 @@ define('WWW', '/var/www');
 class Listing extends Dictionary {
 
   /**
-   * Whether the hosts's /etc/hosts file needs updates or not.
-   */
-  public $hostsoutdated = FALSE;
-
-  /**
    * Constructor.
    */
   public function __construct() {
@@ -33,13 +28,20 @@ class Listing extends Dictionary {
       }
       $this->data[] = new VirtualHost(WWW . '/' . $node);
     }
+  }
 
-    // Check if one of the VirtualHosts are missing from /etc/hosts.
-    $this->hostsoutdated = FALSE;
-    foreach ($this->data as $vhost) {
+  /**
+   * Retrieve a statically cached copy of a Listing() instance.
+   */
+  static public function are_hosts_outdated() {
+    $hosts_outdated = FALSE;
+    $class = get_called_class();
+    foreach ($class::get() as $vhost) {
       if (!$vhost->is_in_hosts) {
-        $this->hostsoutdated = TRUE;
+        $hosts_outdated = TRUE;
+        break;
       }
     }
+    return $hosts_outdated;
   }
 }
