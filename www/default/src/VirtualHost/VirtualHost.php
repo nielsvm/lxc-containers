@@ -36,6 +36,11 @@ class VirtualHost {
   public $tool = FALSE;
 
   /**
+   * Whether the vhost is in the hosts /etc/hosts file or not.
+   */
+  public $is_in_hosts = FALSE;
+
+  /**
    * Constructor.
    */
   public function __construct($path) {
@@ -46,6 +51,18 @@ class VirtualHost {
     $this->name = basename($path);
     $this->domain = sprintf(DOMAINFORMAT, $this->name);
     $this->tool = file_exists($this->path . '/.lxc-tool');
+    $this->is_in_hosts = $this->is_in_hosts();
+  }
+
+  /**
+   * Is the domain represented by this vhost in the hosts's hosts file?
+   */
+  private function is_in_hosts() {
+    $hosts = '/host-etc/hosts';
+    if (!file_exists($hosts)) {
+      return FALSE;
+    }
+    return (bool) strpos(file_get_contents($hosts), $this->domain);
   }
 
   /**

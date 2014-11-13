@@ -35,6 +35,11 @@
         <h2>{{ hostname }}</h2>
         <p>Welcome to your container powered webserver!</p>
       </div>
+{% if hostsoutdated %}
+      <div class="msg">
+        <strong>Your <code>/etc/hosts</code> file is outdated, run <code>www/update-etc-hosts</code>!</strong>
+      </div>
+{% endif %}
       <div id="sites">
         <p>
 {% for vhost in vhosts %}{% if vhost.tool %}

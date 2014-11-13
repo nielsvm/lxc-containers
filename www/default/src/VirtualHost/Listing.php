@@ -14,9 +14,16 @@ define('WWW', '/var/www');
 class Listing extends Dictionary {
 
   /**
+   * Whether the hosts's /etc/hosts file needs updates or not.
+   */
+  public $hostsoutdated = FALSE;
+
+  /**
    * Constructor.
    */
   public function __construct() {
+
+    // Initialize every directory in WWW as VirtualHost object.
     foreach(scandir(WWW) as $node) {
       if (in_array($node, array('.', '..', 'default'))) {
         continue;
@@ -25,6 +32,14 @@ class Listing extends Dictionary {
         continue;
       }
       $this->data[] = new VirtualHost(WWW . '/' . $node);
+    }
+
+    // Check if one of the VirtualHosts are missing from /etc/hosts.
+    $this->hostsoutdated = FALSE;
+    foreach ($this->data as $vhost) {
+      if (!$vhost->is_in_hosts) {
+        $this->hostsoutdated = TRUE;
+      }
     }
   }
 }

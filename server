@@ -230,6 +230,7 @@ def get_container(container_name):
   c['lxcdir'] = "%s/%s" % (LXCDIR, container_name)
   c['scriptdir'] = SCRIPTDIR
   c['root'] = "%s/rootfs" % c['lxcdir']
+  c['mounts'] = {}
 
   # Collect every script ending on .sh as script.
   c['scripts'] = []
@@ -245,9 +246,16 @@ def get_container(container_name):
   c['template'] = mastercnf['container']['template'].strip()
   c['ipv4_address'] = mastercnf['network']['ipv4_address'].strip()
   c['ipv4_address_host'] = mastercnf['network']['ipv4_address_host'].strip()
+  if 'bindmounts' in mastercnf:
+    for src in mastercnf['bindmounts']:
+      dst = mastercnf.get('bindmounts', src)
+      for k, v in c.items():
+        if type(v) == str:
+          dst = dst.replace('$%s' % k, v)
+          src = src.replace('$%s' % k, v)
+      c['mounts'][src] = dst
 
   # Parse the container specific config.ini, which can override a few bits.
-  c['mounts'] = {}
   cnf = configparser.ConfigParser()
   cnf.read("%s/config.ini" % c['dir'])
   if 'container' in cnf:
