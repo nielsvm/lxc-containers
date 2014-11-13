@@ -17,10 +17,20 @@
       a code {
         color: #FFFFFF;
       }
+      .active {
+        opacity: 0.3;
+      }
     </style>
     <script type="text/javascript">
       $(document).ready(function(){
         $('.help').click(function(){
+          if ($('.help').hasClass('active')) {
+            $('.help').removeClass('active')
+          }
+          else {
+            $('.help').addClass('active')
+          }
+
           $("#sites").toggle();
           $("#details").fadeToggle();
         });
