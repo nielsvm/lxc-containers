@@ -31,7 +31,7 @@ class Listing extends Dictionary {
   }
 
   /**
-   * Retrieve a statically cached copy of a Listing() instance.
+   * Check if any of the vhosts are missing from the hosts file.
    */
   static public function are_hosts_outdated() {
     $hosts_outdated = FALSE;

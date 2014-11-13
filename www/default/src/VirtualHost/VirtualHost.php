@@ -1,5 +1,6 @@
 <?PHP
 namespace LXC\VirtualHost;
+use \LXC\Container\HostsFile;
 
 /**
  * The string format of which a domain name is derived.
@@ -51,18 +52,7 @@ class VirtualHost {
     $this->name = basename($path);
     $this->domain = sprintf(DOMAINFORMAT, $this->name);
     $this->tool = file_exists($this->path . '/.lxc-tool');
-    $this->is_in_hosts = $this->is_in_hosts();
-  }
-
-  /**
-   * Is the domain represented by this vhost in the hosts's hosts file?
-   */
-  private function is_in_hosts() {
-    $hosts = '/host-etc/hosts';
-    if (!file_exists($hosts)) {
-      return FALSE;
-    }
-    return (bool) strpos(file_get_contents($hosts), $this->domain);
+    $this->is_in_hosts = HostsFile::hasDomain($this->domain);
   }
 
   /**
