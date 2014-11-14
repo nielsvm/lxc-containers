@@ -6,16 +6,11 @@ from time import sleep
 from shutil import copyfile
 from subprocess import call, check_output
 
-# General purpose, global variables.
-SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
-LXCDIR = '/var/lib/lxc'
-ERRORF = 'ERROR: %s'
-
 #
 # COMMAND: Start a container.
 #
 def START(arguments, container_name):
-  c = get_container(container_name)
+  c = get_container_vars(container_name)
   initialize(c)
 
   # Assure all bind mounts are mounted.
@@ -33,29 +28,12 @@ def START(arguments, container_name):
     umount(src, dst.replace('//', '/'))
 
 #
-# COMMAND: Start a container daemonized.
-#
-def DAEMON(arguments, container_name):
-  c = get_container(container_name)
-  initialize(c)
-
-  # Assure all bind mounts are mounted.
-  for src,dst in c['mounts'].items():
-    dst = '%s/%s' % (c['root'], dst)
-    mount(src, dst.replace('//', '/'))
-
-  call(['lxc-start', "-d", "-n%s" % c['name'], '/sbin/init'])
-  print("Instance started daemonized:")
-  print(" - Use './server %s stop' to stop it again." % c['name'])
-  print(" - Use 'ssh root@%s' to get into your container.\n" % c['ipv4_address'])
-
-#
 # COMMAND: Stop a container.
 #
 def STOP(arguments, container_name):
-  c = get_container(container_name)
+  c = get_container_vars(container_name)
   if not os.path.exists(c['root']):
-    os.sys.exit(ERRORF % 'container does not exist!')
+    quit('container does not exist!')
 
   # First gently stop the container, then umount the filesystems.
   call(['lxc-stop', "-n%s" % c['name']])
@@ -67,9 +45,9 @@ def STOP(arguments, container_name):
 # COMMAND: Destroy a container.
 #
 def DESTROY(arguments, container_name):
-  c = get_container(container_name)
+  c = get_container_vars(container_name)
   if not os.path.exists(c['root']):
-    os.sys.exit(ERRORF % 'container does not exist!')
+    quit('container does not exist!')
 
   # Umount everything FIRST, as it has already wiped out a home directory!
   for src,dst in c['mounts'].items():
@@ -81,17 +59,23 @@ def DESTROY(arguments, container_name):
   call(['lxc-destroy', "-n%s" % c['name']])
 
 #
+# COMMAND: Update the /etc/hosts file.
+#
+def UPDHOSTS(arguments, container_name):
+  quit('Work in progress!')
+
+#
 # Retrieve a list of all containers.
 #
 def containers(check = False):
   global _containers
   if not '_containers' in globals():
     _containers = {}
-    for d in os.listdir(SCRIPTDIR):
+    for d in os.listdir(get_var('scriptdir')):
       if d != '.git':
         if os.path.isdir(d) and not os.path.islink(d):
           if d not in _containers:
-            if 'config.ini' in os.listdir("%s/%s" % (SCRIPTDIR, d)):
+            if 'config.ini' in os.listdir("%s/%s" % (get_var('scriptdir'), d)):
               _containers[d] = []
         if os.path.islink(d):
           dst = os.path.basename(os.path.realpath(d))
@@ -179,7 +163,7 @@ def mount(src, dst):
     call(['mount', '--bind', src, dst])
     sleep(1)
   if not ismount(dst):
-    sys.exit(ERRORF % "apparently %s didn't bind mount!" % dst)
+    quit("apparently %s didn't bind mount!" % dst)
 
 #
 # Check whether the given path is mounted or whether it isn't.
@@ -197,63 +181,49 @@ def umount(src, dst):
     call(['umount', '--force', dst])
     sleep(1)
   if ismount(dst):
-    sys.exit(ERRORF % "%s DID NOT cleanly umount, check lsof!" % dst)
+    quit("%s DID NOT cleanly umount, check lsof!" % dst)
 
 #
 # Satisfy that all dependencies are met and won't cause issues.
 #
-def check_dependencies(prog=None):
+def test_environment_dependencies(prog=None):
+
+  # Check for the given binaries existence.
   if prog is not None:
     for dir in os.environ['PATH'].split(os.pathsep):
       if os.path.exists(os.path.join(dir, prog)):
         return True
     return False
+
+  # Perform all runtime tests.
+  v = get_vars()
   deps = ['chroot', 'chmod', 'mount', 'umount',
           'lxc-start', 'lxc-stop', 'lxc-destroy']
+  if pwd.getpwuid(os.stat(v['scriptdir']).st_uid).pw_dir not in v['scriptdir']:
+    quit("containers repository should be put within your home directory!")
   if platform.system() != 'Linux':
-    sys.exit(ERRORF % 'This only works on Linux.')
-  if oct(stat.S_IMODE(os.lstat(LXCDIR).st_mode)) != '0o705':
-    sys.exit(ERRORF % 'Please do "sudo chmod 705 %s".' % LXCDIR)
+    quit('This only works on Linux.')
+  if oct(stat.S_IMODE(os.lstat(v['lxcroot']).st_mode)) != '0o705':
+    quit('Please do "sudo chmod 705 %s".' % v['lxcroot'])
   for dep in deps:
-    if not check_dependencies(dep):
-      sys.exit(ERRORF % "dependency %s not satisfied!" % dep)
+    if not test_environment_dependencies(dep):
+      quit("dependency %s not satisfied!" % dep)
 
 #
-# Get the container dictionary.
+# Get the container variables.
 #
-def get_container(container_name):
-  c = {}
+def get_container_vars(container_name):
+  c = get_vars()
   c['name'] = container_name
-  c['home'] = pwd.getpwuid(os.stat(SCRIPTDIR).st_uid).pw_dir
-  c['user'] = pwd.getpwuid(os.stat(SCRIPTDIR).st_uid).pw_name
-  c['dir'] = '%s/%s' % (SCRIPTDIR, container_name)
-  c['lxcdir'] = "%s/%s" % (LXCDIR, container_name)
-  c['scriptdir'] = SCRIPTDIR
+  c['dir'] = '%s/%s' % (c['scriptdir'], container_name)
+  c['lxcdir'] = "%s/%s" % (c['lxcroot'], container_name)
   c['root'] = "%s/rootfs" % c['lxcdir']
-  c['mounts'] = {}
 
   # Collect every script ending on .sh as script.
   c['scripts'] = []
   for f in os.listdir(c['dir']):
     if f[-3:] == '.sh':
       c['scripts'].append("%s/%s" % (c['dir'], f))
-
-  # Parse the master config.ini, if keys are missing, this fails badly.
-  if not os.path.exists("%s/config.ini" % c['scriptdir']):
-    sys.exit(ERRORF % "cannot find %s!" % ("%s/config.ini" % c['scriptdir']))
-  mastercnf = configparser.ConfigParser()
-  mastercnf.read("%s/config.ini" % c['scriptdir'])
-  c['template'] = mastercnf['container']['template'].strip()
-  c['ipv4_address'] = mastercnf['network']['ipv4_address'].strip()
-  c['ipv4_address_host'] = mastercnf['network']['ipv4_address_host'].strip()
-  if 'bindmounts' in mastercnf:
-    for src in mastercnf['bindmounts']:
-      dst = mastercnf.get('bindmounts', src)
-      for k, v in c.items():
-        if type(v) == str:
-          dst = dst.replace('$%s' % k, v)
-          src = src.replace('$%s' % k, v)
-      c['mounts'][src] = dst
 
   # Parse the container specific config.ini, which can override a few bits.
   cnf = configparser.ConfigParser()
@@ -277,10 +247,19 @@ def get_container(container_name):
   return c
 
 #
-# Retrieve the argument parser object.
+# Retrieve the argument parser object and the parsed arguments.
 #
-def get_parser():
+def get_parser_and_arguments():
   descr = 'A minimalist LXC based container manager'
+  if ('-h' in sys.argv) or ('--help' in sys.argv):
+    sys.argv = [sys.argv[0], 'fake']
+  if ('-u' in sys.argv) or ('--update-hosts' in sys.argv):
+    sys.argv = [sys.argv[0], '-u', 'fake', 'start']
+  else:
+    if (len(sys.argv)) == 1:
+      sys.argv.append('fake')
+    if (len(sys.argv)) == 2:
+      sys.argv.append('start')
   _containers = []
   for c,aliases in containers().items():
     if len(aliases):
@@ -294,42 +273,75 @@ def get_parser():
                 add_help=False,
                 prog='./server',
                 description=descr)
+  parser.add_argument('--update-hosts', '-u',
+                dest='updhosts', action='store_true', default=False,
+                help='Update the /etc/hosts file.')
   parser.add_argument('container',
                 help='The name of the container')
   parser.add_argument('command',
-                choices=['start', 'daemon', 'stop', 'destroy'],
+                choices=['start', 'stop', 'destroy'],
                 help='Whether to start (default), stop or destroy the container.')
-  return parser
+  arguments = parser.parse_args()
+  if arguments.updhosts:
+    arguments.command = 'updhosts'
+  return (parser, arguments)
 
 #
-# Parse argv and dispatch code.
+# Get the master configuration.
 #
-try:
-  sys.argv[1]
-except IndexError:
-  sys.argv.append('unset')
-try:
-  sys.argv[2]
-except IndexError:
-  sys.argv.append('start')
-parser = get_parser()
-arguments = parser.parse_args()
-if not containers(arguments.container):
+def get_vars():
+  c = {}
+  c['mounts'] = {}
+  c['lxcroot'] = '/var/lib/lxc'
+  c['scriptdir'] = os.path.dirname(os.path.abspath(__file__))
+  c['home'] = pwd.getpwuid(os.stat(c['scriptdir']).st_uid).pw_dir
+  c['user'] = pwd.getpwuid(os.stat(c['scriptdir']).st_uid).pw_name
+
+  if not os.path.exists("%s/config.ini" % c['scriptdir']):
+    quit("cannot find %s!" % ("%s/config.ini" % c['scriptdir']))
+  mastercnf = configparser.ConfigParser()
+  mastercnf.read("%s/config.ini" % c['scriptdir'])
+  c['template'] = mastercnf['container']['template'].strip()
+  c['ipv4_address'] = mastercnf['network']['ipv4_address'].strip()
+  c['ipv4_address_host'] = mastercnf['network']['ipv4_address_host'].strip()
+  if 'bindmounts' in mastercnf:
+    for src in mastercnf['bindmounts']:
+      dst = mastercnf.get('bindmounts', src)
+      for k, v in c.items():
+        if type(v) == str:
+          dst = dst.replace('$%s' % k, v)
+          src = src.replace('$%s' % k, v)
+      c['mounts'][src] = dst
+  return c
+
+#
+# Get a variable from the master configuration.
+#
+def get_var(variable):
+  return get_vars()[variable]
+
+#
+# Quit the application in case of failure.
+#
+def quit(msg):
+  sys.exit('ERROR: %s' % msg)
+
+#
+# Parse and manipulate sys.argv and dispatch code.
+#
+parser, arguments = get_parser_and_arguments()
+if not containers(arguments.container) and not arguments.updhosts:
   parser.print_help()
 else:
   # Re-execute ourselves as root from this point on, we'll need to mess
   # around in /var/lib/lxc quite a bit so this makes it much easier.
   if os.geteuid() != 0:
-
     print("LXC and this script require root-level privileges in order to manage")
-    print("your containers and %s, please provide your biggest secret below.\n" % LXCDIR)
+    print("your containers and %s, please provide your biggest secret below.\n" % get_var('lxcroot'))
     os.execvp("sudo", ["sudo"] + sys.argv)
 
-  # Check if the user has this script somewhere underneath its home directory,
-  # because if it is not, assumptions on mount points will break!
-  if pwd.getpwuid(os.stat(SCRIPTDIR).st_uid).pw_dir not in SCRIPTDIR:
-    sys.exit(ERRORF % "containers repository should be put within your home directory!")
+  # Test the computing environment for needed binaries, permissions, etc.
+  test_environment_dependencies()
 
-  # Check for dependencies and call the chosen command by the same-named function.
-  check_dependencies()
+  # Dispatch execution to a function with the CAPITALIZED name of the command.
   locals()[arguments.command.upper()](arguments, containers(arguments.container))
