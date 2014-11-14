@@ -62,7 +62,69 @@ def DESTROY(arguments, container_name):
 # COMMAND: Update the /etc/hosts file.
 #
 def UPDHOSTS(arguments, container_name):
-  quit('Work in progress!')
+  v = get_vars()
+
+  # Generate the list of domain names for each directory under www/.
+  DOMAINS = []
+  for d in os.listdir("%s/www" % v['scriptdir']):
+    if d != '.git':
+      if d != 'default':
+        if os.path.isdir("%s/%s" % ("%s/www" % v['scriptdir'], d)):
+          DOMAINS.append("%s.loc" % d)
+  DOMAINS = sorted(DOMAINS)
+
+  # Generate the lines we'd like to inject.
+  MARKER_START = "# update-etc-hosts - DO NOT TOUCH THIS SECTION! #############\n"
+  MARKER_END   = "# /update-etc-hosts #########################################\n"
+  LINES = [MARKER_START]
+  linebuf = [v['ipv4_address']]
+  for domain in DOMAINS:
+    linebuf.append(domain)
+    if len(linebuf) == 4:
+      LINES.append(" ".join(linebuf) + "\n")
+      linebuf = [v['ipv4_address']]
+  if len(linebuf) > 1:
+    LINES.append(" ".join(linebuf) + "\n")
+  LINES.append(MARKER_END)
+
+  # Read /etc/hosts and replace OR add the new lines, generate a full new buffer.
+  buffer = []
+  with open('/etc/hosts', 'r') as hro:
+    had_old_section = False
+    within_old_section = False
+    for line in hro.readlines():
+      if line == MARKER_START:
+        within_old_section = had_old_section = True
+      if within_old_section:
+        if line == MARKER_END:
+          within_old_section = False
+
+          # Now append the newly generated section just in place.
+          for line in LINES:
+            buffer.append(line)
+        continue
+      else:
+        buffer.append(line)
+    if not had_old_section:
+      last_line = buffer.pop()
+      buffer.append(last_line)
+      if last_line != "\n":
+        buffer.append("\n")
+      for line in LINES:
+        buffer.append(line)
+  hro.close()
+
+  # Reopen /etc/hosts in truncated write mode, and rewrite the file.
+  with open('/etc/hosts', 'w') as hw:
+    for line in buffer:
+      hw.write(line)
+  hw.close()
+  
+  if had_old_section:
+    print("Successfully replaced the old hosts in /etc/hosts!\n")
+  else:
+    print("Successfully added the hosts to /etc/hosts!\n")
+  print("".join(LINES))
 
 #
 # Retrieve a list of all containers.

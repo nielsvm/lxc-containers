@@ -44,7 +44,7 @@
       </div>
 {% if hostsoutdated %}
       <div class="msg error">
-        <strong>Your <code>/etc/hosts</code> file is outdated, run the <code>www/update-etc-hosts</code> script!&nbsp;</strong>
+        <strong>Your <code>/etc/hosts</code> file is outdated, please run <code>./server --update-hosts</code>!&nbsp;</strong>
         <a class="help btn smooth btn-c btn-sm" href="#"><b>help</b></a>
       </div>
 {% endif %}
@@ -73,11 +73,13 @@
             From the projects inside the <code>www/</code> directory, domain names are automatically derived by appending <code>.loc</code> to them. For instance, a directory <code>mysite</code> will be made available at <code>http://mysite.loc/</code>. The first time you visit a domain like that, a vhost file gets automatically written and Apache gets reconfigured while you wait.
           </p>
           <p>
-            The only manual step required in this process is for you to update your <code>/etc/hosts</code> each time you add a new project. You can <i>very easily</i> update your hosts file with the <code>update-etc-hosts</code> script. This will append or just replace a previously generated stanza, but it will not touch anything else in your hosts file:
+            The only manual step required in this process is for you to update your <code>/etc/hosts</code> each time you add a new project. You can <i>very easily</i> update your hosts file by running <code>./server --update-hosts</code>. This will append or just replace a previously generated stanza, but it will not touch anything else in your hosts file:
           </p>
           <div class="msg grey">
-            <pre>$ cd www/
-$ ./update-etc-hosts
+            <pre>$ ./server --update-hosts
+LXC and this script require root-level privileges in order to manage
+your containers and /var/lib/lxc, please provide your biggest secret below.
+
 [sudo] password for {{ lxc.user }}:
 Successfully replaced the old hosts in /etc/hosts!
 
@@ -86,7 +88,7 @@ Successfully replaced the old hosts in /etc/hosts!
 # /update-etc-hosts #########################################</pre>
           </div>
           <p>
-            But if that isn't your thing, you can copy-paste these auto-generated lines yourself. By also including the start- and end markers, you leave yourself the ability open to still use <code>update-etc-hosts</code> at a later point.
+            But if that isn't your thing, you can copy-paste these auto-generated lines yourself. By also including the start- and end markers, you leave yourself the ability open to still use <code>./server --update-hosts</code> at a later point.
           </p>
           <div class="msg grey">
             <pre>
