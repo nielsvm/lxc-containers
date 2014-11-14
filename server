@@ -290,29 +290,29 @@ def get_parser_and_arguments():
 # Get the master configuration.
 #
 def get_vars():
-  c = {}
-  c['mounts'] = {}
-  c['lxcroot'] = '/var/lib/lxc'
-  c['scriptdir'] = os.path.dirname(os.path.abspath(__file__))
-  c['home'] = pwd.getpwuid(os.stat(c['scriptdir']).st_uid).pw_dir
-  c['user'] = pwd.getpwuid(os.stat(c['scriptdir']).st_uid).pw_name
+  v = {}
+  v['mounts'] = {}
+  v['lxcroot'] = '/var/lib/lxc'
+  v['scriptdir'] = os.path.dirname(os.path.abspath(__file__))
+  v['home'] = pwd.getpwuid(os.stat(v['scriptdir']).st_uid).pw_dir
+  v['user'] = pwd.getpwuid(os.stat(v['scriptdir']).st_uid).pw_name
 
-  if not os.path.exists("%s/config.ini" % c['scriptdir']):
-    quit("cannot find %s!" % ("%s/config.ini" % c['scriptdir']))
+  if not os.path.exists("%s/config.ini" % v['scriptdir']):
+    quit("cannot find %s!" % ("%s/config.ini" % v['scriptdir']))
   mastercnf = configparser.ConfigParser()
-  mastercnf.read("%s/config.ini" % c['scriptdir'])
-  c['template'] = mastercnf['container']['template'].strip()
-  c['ipv4_address'] = mastercnf['network']['ipv4_address'].strip()
-  c['ipv4_address_host'] = mastercnf['network']['ipv4_address_host'].strip()
+  mastercnf.read("%s/config.ini" % v['scriptdir'])
+  v['template'] = mastercnf['container']['template'].strip()
+  v['ipv4_address'] = mastercnf['network']['ipv4_address'].strip()
+  v['ipv4_address_host'] = mastercnf['network']['ipv4_address_host'].strip()
   if 'bindmounts' in mastercnf:
     for src in mastercnf['bindmounts']:
       dst = mastercnf.get('bindmounts', src)
-      for k, v in c.items():
-        if type(v) == str:
-          dst = dst.replace('$%s' % k, v)
-          src = src.replace('$%s' % k, v)
-      c['mounts'][src] = dst
-  return c
+      for key, var in v.items():
+        if type(var) == str:
+          dst = dst.replace('$%s' % key, var)
+          src = src.replace('$%s' % key, var)
+      v['mounts'][src] = dst
+  return v
 
 #
 # Get a variable from the master configuration.
