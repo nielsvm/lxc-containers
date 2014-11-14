@@ -119,7 +119,7 @@ def UPDHOSTS(arguments, container_name):
     for line in buffer:
       hw.write(line)
   hw.close()
-  
+
   if had_old_section:
     print("Successfully replaced the old hosts in /etc/hosts!\n")
   else:
