@@ -4,11 +4,6 @@ Use \LXC\Types\Dictionary;
 Use \LXC\VirtualHost\VirtualHost;
 
 /**
- * The hardcoded document root (as mounted within the container).
- */
-define('WWW', '/var/www');
-
-/**
  * Represents all projects in /var/www.
  */
 class Listing extends Dictionary {
@@ -17,16 +12,17 @@ class Listing extends Dictionary {
    * Constructor.
    */
   public function __construct() {
+    $www = \LXC\Container\Variables::get('www_docroot');
 
     // Initialize every directory in WWW as VirtualHost object.
-    foreach(scandir(WWW) as $node) {
+    foreach(scandir($www) as $node) {
       if (in_array($node, array('.', '..', 'default'))) {
         continue;
       }
-      if (!is_dir(WWW . '/' . $node)) {
+      if (!is_dir($www . '/' . $node)) {
         continue;
       }
-      $this->data[] = new VirtualHost(WWW . '/' . $node);
+      $this->data[] = new VirtualHost($www . '/' . $node);
     }
   }
 

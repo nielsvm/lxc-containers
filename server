@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os, pwd, sys, stat, platform
 import argparse
-import configparser
+import configparser, io
 from time import sleep
 from shutil import copyfile
 from subprocess import call, check_output
@@ -14,49 +14,38 @@ def START(arguments, container_name):
   initialize(c)
 
   # Assure all bind mounts are mounted.
-  for src,dst in c['mounts'].items():
-    dst = '%s/%s' % (c['root'], dst)
-    mount(src, dst.replace('//', '/'))
+  mount(batch=c['mounts'])
 
   # Start the container.
-  call(['lxc-start', "-F", "-n%s" % c['name'], '/sbin/init'])
+  call(['lxc-start'] + c['lxcopts_start'].split(' '))
 
   # Sleep a little and umount all mounts.
   sleep(2)
-  for src,dst in c['mounts'].items():
-    dst = '%s/%s' % (c['root'], dst)
-    umount(src, dst.replace('//', '/'))
+  umount(batch=c['mounts'])
 
 #
 # COMMAND: Stop a container.
 #
 def STOP(arguments, container_name):
   c = get_container_vars(container_name)
-  if not os.path.exists(c['root']):
+  if not os.path.exists(c['container_rootfs']):
     quit('container does not exist!')
 
   # First gently stop the container, then umount the filesystems.
-  call(['lxc-stop', "-n%s" % c['name']])
-  for src,dst in c['mounts'].items():
-    dst = '%s/%s' % (c['root'], dst)
-    umount(src, dst.replace('//', '/'))
+  call(['lxc-stop'] + c['lxcopts_stop'].split(' '))
+  umount(batch=c['mounts'])
 
 #
 # COMMAND: Destroy a container.
 #
 def DESTROY(arguments, container_name):
   c = get_container_vars(container_name)
-  if not os.path.exists(c['root']):
+  if not os.path.exists(c['container_rootfs']):
     quit('container does not exist!')
 
-  # Umount everything FIRST, as it has already wiped out a home directory!
-  for src,dst in c['mounts'].items():
-    dst = '%s/%s' % (c['root'], dst)
-
-    # Luckily, after ^^^, the umount function stops the script if umounts fail!
-    umount(src, dst.replace('//', '/'))
-
-  call(['lxc-destroy', "-n%s" % c['name']])
+  # Umount everything and then destroy the container.
+  umount(batch=c['mounts'])
+  call(['lxc-destroy'] + c['lxcopts_destroy'].split(' '))
 
 #
 # COMMAND: Update the /etc/hosts file.
@@ -66,10 +55,10 @@ def UPDHOSTS(arguments, container_name):
 
   # Generate the list of domain names for each directory under www/.
   DOMAINS = []
-  for d in os.listdir("%s/www" % v['scriptdir']):
+  for d in os.listdir("%s/www" % v['repo']):
     if d != '.git':
       if d != 'default':
-        if os.path.isdir("%s/%s" % ("%s/www" % v['scriptdir'], d)):
+        if os.path.isdir("%s/%s" % ("%s/www" % v['repo'], d)):
           DOMAINS.append("%s.loc" % d)
   DOMAINS = sorted(DOMAINS)
 
@@ -77,12 +66,12 @@ def UPDHOSTS(arguments, container_name):
   MARKER_START = "# update-etc-hosts - DO NOT TOUCH THIS SECTION! #############\n"
   MARKER_END   = "# /update-etc-hosts #########################################\n"
   LINES = [MARKER_START]
-  linebuf = [v['ipv4_address']]
+  linebuf = [v['container_ipv4']]
   for domain in DOMAINS:
     linebuf.append(domain)
     if len(linebuf) == 4:
       LINES.append(" ".join(linebuf) + "\n")
-      linebuf = [v['ipv4_address']]
+      linebuf = [v['container_ipv4']]
   if len(linebuf) > 1:
     LINES.append(" ".join(linebuf) + "\n")
   LINES.append(MARKER_END)
@@ -133,11 +122,11 @@ def containers(check = False):
   global _containers
   if not '_containers' in globals():
     _containers = {}
-    for d in os.listdir(get_var('scriptdir')):
+    for d in os.listdir(get_var('repo')):
       if d != '.git':
         if os.path.isdir(d) and not os.path.islink(d):
           if d not in _containers:
-            if 'config.ini' in os.listdir("%s/%s" % (get_var('scriptdir'), d)):
+            if 'config.ini' in os.listdir("%s/%s" % (get_var('repo'), d)):
               _containers[d] = []
         if os.path.islink(d):
           dst = os.path.basename(os.path.realpath(d))
@@ -157,55 +146,55 @@ def containers(check = False):
 def initialize(c):
 
   # When the container doesn't exist yet, we need to create it.
-  if not os.path.exists(c['root']):
-    call(["lxc-create",
-          "-t%s" % c['template'],
-          "-n%s" % c['name']])
+  if not os.path.exists(c['container_rootfs']):
+    call(['lxc-create'] + c['lxcopts_create'].split(' '))
 
     # Configure the static IP address and silence app armor (since Ubuntu 14.10)
-    with open("%s/config" % c['lxcdir'], "a") as config:
-      config.write("\n# CUSTOM CONFIGURATION FOR %s\n" % c['name'])
-      config.write("lxc.network.ipv4 = %s/16\n" % c['ipv4_address'])
+    with open("%s/config" % c['container_lxc'], "a") as config:
+      config.write("\n# CUSTOM CONFIGURATION FOR %s\n" % c['container_name'])
+      config.write("lxc.network.ipv4 = %s/24 %s\n" % (c['container_ipv4'], c['container_ipv4_nm']))
+      config.write("lxc.network.ipv4.gateway = %s\n" % c['container_ipv4_gw'])
       config.write("lxc.aa_allow_incomplete = 1")
 
     # Statically configure the (Debian) container since lxc.network.ipv4 doesn't
     # work reliably anymore since Ubuntu 14.10, this does ;).
-    if os.path.exists("%s/etc/network/interfaces" % c['root']):
-      with open("%s/etc/network/interfaces" % c['root'], "w") as interfaces:
+    if os.path.exists("%s/etc/network/interfaces" % c['container_rootfs']):
+      with open("%s/etc/network/interfaces" % c['container_rootfs'], "w") as interfaces:
         interfaces.write("auto lo\n")
         interfaces.write("iface lo inet loopback\n\n")
         interfaces.write("auto eth0\n")
         interfaces.write("iface eth0 inet static\n")
-        interfaces.write("        address %s\n" % c['ipv4_address'])
-        interfaces.write("        netmask 255.255.255.0\n")
-        interfaces.write("        gateway %s\n" % c['ipv4_address_host'])
-        interfaces.write("        dns-nameservers %s\n" % c['ipv4_address_host'])
-    if os.path.exists("%s/etc/resolv.conf" % c['root']):
-      with open("%s/etc/resolv.conf" % c['root'], "w") as resolvconf:
-        resolvconf.write("nameserver %s\n" % c['ipv4_address_host'])
+        interfaces.write("        address %s\n" % c['container_ipv4'])
+        interfaces.write("        netmask %s\n" % c['container_ipv4_nm'])
+        interfaces.write("        gateway %s\n" % c['container_ipv4_gw'])
+        interfaces.write("        dns-nameservers %s\n" % c['container_ipv4_ns'])
+    if os.path.exists("%s/etc/resolv.conf" % c['container_rootfs']):
+      with open("%s/etc/resolv.conf" % c['container_rootfs'], "w") as resolvconf:
+        resolvconf.write("nameserver %s\n" % c['container_ipv4_ns'])
+
+    # Add a explanatory message to /etc/issue.
+    if os.path.exists("%s/etc/issue" % c['container_rootfs']):
+      with open("%s/etc/issue" % c['container_rootfs'], "a") as etcissue:
+        etcissue.write("Welcome to your LXC container %s!\n\n" % c['container_name'])
+        etcissue.write("This is not a vm, but a isolated container keeping\n")
+        etcissue.write("your development tools isolated. Login with root/root\n")
+        etcissue.write("and shut it down with 'halt -p'.\n\n")
+        etcissue.write("Visit http://%s/ for further instructions.\n\n" % c['container_ipv4'])
 
     # Install the provisioner scripts.
     for script in c['scripts']:
       service = os.path.basename(script).replace('.sh', '')
-      copyfile(script, '%s/etc/init.d/%s' % (c['root'], service))
-      call(['chmod', '755', '%s/etc/init.d/%s' % (c['root'], service)])
-      call(['chroot', c['root'], '/usr/sbin/update-rc.d', service, 'defaults'])
-
-    # Add a explanatory message to /etc/issue.
-    if os.path.exists("%s/etc/issue" % c['root']):
-      with open("%s/etc/issue" % c['root'], "a") as etcissue:
-        etcissue.write("Welcome to your LXC container %s!\n\n" % c['name'])
-        etcissue.write("This is not a vm, but a isolated container keeping\n")
-        etcissue.write("your development tools isolated. Login with root/root\n")
-        etcissue.write("and shut it down with 'halt -p'.\n\n")
+      copyfile(script, '%s/etc/init.d/%s' % (c['container_rootfs'], service))
+      call(['chmod', '755', '%s/etc/init.d/%s' % (c['container_rootfs'], service)])
+      call(['chroot', c['container_rootfs'], '/usr/sbin/update-rc.d', service, 'defaults'])
 
     # Create two provisioner helper scripts (sh, php) with all variables.
-    with open("%s/etc/lxc-containervars.sh" % c['root'], 'w+') as varssh:
+    with open("%s/etc/lxc-containervars.sh" % c['container_rootfs'], 'w+') as varssh:
       varssh.write("#!/bin/bash\n")
       for k, v in sorted(c.items()):
         if type(v) == str:
           varssh.write("export LXC_%s=\"%s\"\n" % (k.upper(), v))
-    with open("%s/etc/lxc-containervars.php" % c['root'], 'w+') as varsphp:
+    with open("%s/etc/lxc-containervars.php" % c['container_rootfs'], 'w+') as varsphp:
       varsphp.write("<?PHP\n")
       for k, v in sorted(c.items()):
         if type(v) == str:
@@ -213,37 +202,56 @@ def initialize(c):
 
     # Start the instance for the first time, the provisioner will run and shut
     # itself down at the very end of the process. A proper mount follows.
-    call(["lxc-start", "-F", "-n%s" % c['name'], '/sbin/init'])
+    call(['lxc-start'] + c['lxcopts_start'].split(' '))
 
 #
 # Mount the given src,dst bind mount instruction.
 #
-def mount(src, dst):
-  if not ismount(dst):
-    if not os.path.exists(dst):
-      call(['mkdir', '-p', dst])
-    call(['mount', '--bind', src, dst])
-    sleep(1)
-  if not ismount(dst):
-    quit("apparently %s didn't bind mount!" % dst)
+def mount(batch=[], op='mount', m=None):
+  if len(batch):
+    for m in batch:
+      mount(op=op, m=m)
+    return
 
-#
-# Check whether the given path is mounted or whether it isn't.
-#
-def ismount(path):
-  if path in str(check_output(['mount'])):
+  if (op == 'ismounted'):
+    if m['dst'] in str(check_output(['mount'])):
+      return True
+    return False
+
+  elif (op == 'mount'):
+    if not mount(op='ismounted', m=m):
+      if not os.path.exists(m['dst']):
+        call(['mkdir', '-p', m['dst']])
+      call(['mount', '--bind', m['src'], m['dst']])
+      if m['mode'] == 'ro':
+        sleep(1)
+        call(['mount', '-oremount,ro', m['dst']])
+      sleep(1)
+    if not mount(op='ismounted', m=m):
+      quit("u-oh... bind mounting %s failed!" % m['dst'])
     return True
-  return False
+
+  elif (op == 'umount'):
+    if mount(op='ismounted', m=m):
+      call(['umount', '--force', m['dst']])
+      sleep(2)
+
+    # Check if the destination umounted properly. If we wouldn't, this could
+    # lead to a situation where lxc-destroy traverses into read-write mounted
+    # paths and destroying kittens. Although its always recommended to put {ro}
+    # in declared mounts in config.ini, this unfortunately doesn't always work.
+    if mount(op='ismounted', m=m):
+      msg = "%s DID NOT UMOUNT PROPERLY!\n\n" % m['dst']
+      msg = msg + "Please review which processes still use the mount by\n"
+      msg = msg + "running: lsof|grep %s\n\n" % m['dst']
+      msg = msg + "Then kill the identified processes and run this again!\n"
+      quit(msg)
 
 #
 # Umount the given src,dst bind mount instruction.
 #
-def umount(src, dst):
-  if ismount(dst):
-    call(['umount', '--force', dst])
-    sleep(1)
-  if ismount(dst):
-    quit("%s DID NOT cleanly umount, check lsof!" % dst)
+def umount(batch=[], op='umount', m=None):
+  mount(batch=batch, op=op, m=m)
 
 #
 # Satisfy that all dependencies are met and won't cause issues.
@@ -261,12 +269,12 @@ def test_environment_dependencies(prog=None):
   v = get_vars()
   deps = ['chroot', 'chmod', 'mount', 'umount',
           'lxc-start', 'lxc-stop', 'lxc-destroy']
-  if pwd.getpwuid(os.stat(v['scriptdir']).st_uid).pw_dir not in v['scriptdir']:
+  if pwd.getpwuid(os.stat(v['repo']).st_uid).pw_dir not in v['repo']:
     quit("containers repository should be put within your home directory!")
   if platform.system() != 'Linux':
     quit('This only works on Linux.')
-  if oct(stat.S_IMODE(os.lstat(v['lxcroot']).st_mode)) != '0o705':
-    quit('Please do "sudo chmod 705 %s".' % v['lxcroot'])
+  if oct(stat.S_IMODE(os.lstat(v['lxc']).st_mode)) != '0o705':
+    quit('Please do "sudo chmod 705 %s".' % v['lxc'])
   for dep in deps:
     if not test_environment_dependencies(dep):
       quit("dependency %s not satisfied!" % dep)
@@ -276,36 +284,23 @@ def test_environment_dependencies(prog=None):
 #
 def get_container_vars(container_name):
   c = get_vars()
-  c['name'] = container_name
-  c['dir'] = '%s/%s' % (c['scriptdir'], container_name)
-  c['lxcdir'] = "%s/%s" % (c['lxcroot'], container_name)
-  c['root'] = "%s/rootfs" % c['lxcdir']
+  c['container_name'] = container_name
+  c['container_repo'] = get_vars_parsefile_replace(c, c['container_repo'])
+  c = get_vars_parsefile("%s/config.ini" % c['container_repo'], c)
+
+  # Rewrite the mount destinations.
+  mounts = []
+  for mount in c['mounts']:
+    mount['dst'] = "%s/%s" % (c['container_rootfs'], mount['dst'])
+    mount['dst'] = mount['dst'].replace('//', '/')
+    mounts.append(mount)
+  c['mounts'] = mounts
 
   # Collect every script ending on .sh as script.
   c['scripts'] = []
-  for f in os.listdir(c['dir']):
+  for f in os.listdir(c['container_repo']):
     if f[-3:] == '.sh':
-      c['scripts'].append("%s/%s" % (c['dir'], f))
-
-  # Parse the container specific config.ini, which can override a few bits.
-  cnf = configparser.ConfigParser()
-  cnf.read("%s/config.ini" % c['dir'])
-  if 'container' in cnf:
-    if 'template' in cnf['container']:
-      c['template'] = cnf['container']['template'].strip()
-  if 'network' in cnf:
-    if 'ipv4_address' in cnf['network']:
-      c['ipv4_address'] = cnf['network']['ipv4_address'].strip()
-    if 'ipv4_address_host' in cnf['network']:
-      c['ipv4_address_host'] = cnf['network']['ipv4_address_host'].strip()
-  if 'bindmounts' in cnf:
-    for src in cnf['bindmounts']:
-      dst = cnf.get('bindmounts', src)
-      for k, v in c.items():
-        if type(v) == str:
-          dst = dst.replace('$%s' % k, v)
-          src = src.replace('$%s' % k, v)
-      c['mounts'][src] = dst
+      c['scripts'].append("%s/%s" % (c['container_repo'], f))
   return c
 
 #
@@ -353,28 +348,55 @@ def get_parser_and_arguments():
 #
 def get_vars():
   v = {}
-  v['mounts'] = {}
-  v['lxcroot'] = '/var/lib/lxc'
-  v['scriptdir'] = os.path.dirname(os.path.abspath(__file__))
-  v['home'] = pwd.getpwuid(os.stat(v['scriptdir']).st_uid).pw_dir
-  v['user'] = pwd.getpwuid(os.stat(v['scriptdir']).st_uid).pw_name
-
-  if not os.path.exists("%s/config.ini" % v['scriptdir']):
-    quit("cannot find %s!" % ("%s/config.ini" % v['scriptdir']))
-  mastercnf = configparser.ConfigParser()
-  mastercnf.read("%s/config.ini" % v['scriptdir'])
-  v['template'] = mastercnf['container']['template'].strip()
-  v['ipv4_address'] = mastercnf['network']['ipv4_address'].strip()
-  v['ipv4_address_host'] = mastercnf['network']['ipv4_address_host'].strip()
-  if 'bindmounts' in mastercnf:
-    for src in mastercnf['bindmounts']:
-      dst = mastercnf.get('bindmounts', src)
-      for key, var in v.items():
-        if type(var) == str:
-          dst = dst.replace('$%s' % key, var)
-          src = src.replace('$%s' % key, var)
-      v['mounts'][src] = dst
+  v['mounts'] = []
+  v['repo'] = os.path.dirname(os.path.abspath(__file__))
+  v['home'] = pwd.getpwuid(os.stat(v['repo']).st_uid).pw_dir
+  v['user'] = pwd.getpwuid(os.stat(v['repo']).st_uid).pw_name
+  v = get_vars_parsefile("%s/config.ini" % v['repo'], v)
   return v
+
+#
+# Parse the given configuration file.
+#
+def get_vars_parsefile(path, v):
+  if not os.path.exists(path):
+    quit("cannot find %s!" % (path))
+  config = HeaderlessConfigParser()
+  config.read(path)
+  for ns in config:
+    for key, value in config[ns].items():
+      if ns == '__':
+        v[key] = value
+      elif ns == 'mounts':
+        mount = {
+          'mode': key.replace('{', '').split('}')[0],
+          'src': key.replace('{', '').split('}')[1],
+          'dst': value
+        }
+        v['mounts'].append(mount)
+      else:
+        v["%s_%s" % (ns, key)] = value
+  for key, value in v.items():
+    if key is not 'mounts':
+      v[key] = get_vars_parsefile_replace(v, value)
+    else:
+      mounts = []
+      for mount in value:
+        mount['src'] = get_vars_parsefile_replace(v, mount['src'])
+        mount['dst'] = get_vars_parsefile_replace(v, mount['dst'])
+        mounts.append(mount)
+      v['mounts'] = mounts
+  return v
+
+#
+# Replace variable references used in parsed configuration files.
+#
+def get_vars_parsefile_replace(v, value):
+  for k, _v in v.items():
+    if type(_v) != str:
+      continue
+    value = value.replace('$%s' % k, _v)
+  return value
 
 #
 # Get a variable from the master configuration.
@@ -389,6 +411,19 @@ def quit(msg):
   sys.exit('ERROR: %s' % msg)
 
 #
+# Alternative configparser that allows the top-items to be sectionless.
+#
+class HeaderlessConfigParser(configparser.ConfigParser):
+  def read(self, filename):
+    try:
+      text = open(filename).read()
+    except IOError:
+      pass
+    else:
+      file = io.StringIO("[__]\n" + text)
+      self.readfp(file, filename)
+
+#
 # Parse and manipulate sys.argv and dispatch code.
 #
 parser, arguments = get_parser_and_arguments()
@@ -399,7 +434,7 @@ else:
   # around in /var/lib/lxc quite a bit so this makes it much easier.
   if os.geteuid() != 0:
     print("LXC and this script require root-level privileges in order to manage")
-    print("your containers and %s, please provide your biggest secret below.\n" % get_var('lxcroot'))
+    print("your containers and %s, please provide your biggest secret below.\n" % get_var('lxc'))
     os.execvp("sudo", ["sudo"] + sys.argv)
 
   # Test the computing environment for needed binaries, permissions, etc.

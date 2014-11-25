@@ -143,7 +143,7 @@ abstract class Dictionary implements \ArrayAccess, \Iterator {
   /**
    * Retrieve a statically cached copy of a Listing() instance.
    */
-  static public function get() {
+  static public function get($key = NULL) {
     static $copies;
     $class = get_called_class();
     if (is_null($copies)) {
@@ -152,6 +152,11 @@ abstract class Dictionary implements \ArrayAccess, \Iterator {
     if (!isset($copies[$class])) {
       $copies[$class] = new $class();
     }
-    return $copies[$class];
+    if (is_null($key)) {
+      return $copies[$class];
+    }
+    else {
+      return $copies[$class][$key];
+    }
   }
 }

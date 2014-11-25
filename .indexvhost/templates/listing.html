@@ -84,7 +84,7 @@ your containers and /var/lib/lxc, please provide your biggest secret below.
 Successfully replaced the old hosts in /etc/hosts!
 
 # update-etc-hosts - DO NOT TOUCH THIS SECTION! #############
-{{ lxc.ipv4_address }} adminer.loc opcode-cache.loc
+{{ lxc.container_ipv4 }} adminer.loc opcode-cache.loc
 # /update-etc-hosts #########################################</pre>
           </div>
           <p>
@@ -94,7 +94,7 @@ Successfully replaced the old hosts in /etc/hosts!
             <pre>
 # update-etc-hosts - DO NOT TOUCH THIS SECTION! #############
 {% for vhost in vhosts %}
-{{ lxc.ipv4_address }}        {{ vhost.domain }}
+{{ lxc.container_ipv4 }}        {{ vhost.domain }}
 {% endfor %}
 # /update-etc-hosts #########################################
             </pre>
@@ -107,8 +107,10 @@ Successfully replaced the old hosts in /etc/hosts!
         </div>
         <div>
           <h4>Different projects directory?</h4>
-          <p>Instead of the <code>www/</code> directory, you can mount your own projects directory as long as your user owns the files and <code>www/default/</code> gets copied over to the new location (it contains part of the magic). After picking a new location for your source code, shut down your container with <code>halt -p</code> and edit <code>config.ini</code> for every container you use. In each <code>[bindmounts]</code> section, you will need to change the source location to a path on your host machine:</p>
-          <pre>/path/to/my/projects/on/host = /var/www</pre>
+          <p>Instead of the <code>www/</code> directory, you can mount your own projects directory as long as <code>{{ lxc.user }}</code> owns the files. After picking a new location for your source code, shut down your container with <code>halt -p</code> and edit <code>{{ lxc.repo }}/config.ini</code>. In the <code>[www]</code> section, edit the <code>projects</code> setting and point it to your new location:</p>
+          <pre>[www]
+projects        = {{ lxc.home }}/MyProjects
+...</pre>
           <p>That's it, you can now start your container again!</p>
         </div>
       </div>

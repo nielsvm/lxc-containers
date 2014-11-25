@@ -128,7 +128,7 @@ function bootstrap_6_tune_server {
   HOSTNAME=`hostname`
 
   # Add important records to /etc/hosts.
-  echo "$LXC_IPV4_ADDRESS_HOST master" >> /etc/hosts
+  echo "$LXC_HOST_IPV4 $LXC_HOST_DOMAIN" >> /etc/hosts
   echo "127.0.0.1       $HOSTNAME" >> /etc/hosts
   etc-save "Updated /etc/hosts."
 }
@@ -224,7 +224,7 @@ function bootstrap_9_tune_apache {
   # Rewrite the default virtual host.
   echo '' > /etc/apache2/sites-available/default
   echo '<Virtualhost *:80>' >> /etc/apache2/sites-available/default
-  echo '  DocumentRoot "/var/www/default"' >> /etc/apache2/sites-available/default
+  echo "  DocumentRoot '$LXC_WWW_INDEXVHOST'" >> /etc/apache2/sites-available/default
   echo '  ErrorLog ${APACHE_LOG_DIR}/error.log' >> /etc/apache2/sites-available/default
   echo '  LogLevel warn' >> /etc/apache2/sites-available/default
   echo '  CustomLog ${APACHE_LOG_DIR}/access.log combined' >> /etc/apache2/sites-available/default
@@ -233,7 +233,7 @@ function bootstrap_9_tune_apache {
   echo '    Options FollowSymLinks' >> /etc/apache2/sites-available/default
   echo '    AllowOverride None' >> /etc/apache2/sites-available/default
   echo '  </Directory>' >> /etc/apache2/sites-available/default
-  echo '  <Directory "/var/www/default">' >> /etc/apache2/sites-available/default
+  echo "  <Directory '$LXC_WWW_INDEXVHOST'>" >> /etc/apache2/sites-available/default
   echo '    Options Indexes FollowSymLinks' >> /etc/apache2/sites-available/default
   echo '    AllowOverride All' >> /etc/apache2/sites-available/default
   echo '    Order allow,deny' >> /etc/apache2/sites-available/default

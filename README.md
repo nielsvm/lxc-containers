@@ -7,7 +7,7 @@ LXC is a thin layer on top of Linux cgroups, allowing you to 'slice up' your com
 You can compare this project a little bit with `varnish-lxc` but this is intentionally simple, highly portable (git clone) and aimed at coders who need something **seriously fast**. Virtualization can be fast but isn't always necessarily so, and when its just a LAMP stack or ruby/python binaries of some version you need, this gives you the best of both.
 
 # Installation
-All you need is *Ubuntu 14.04/trusty* and LXC installed (`apt-get install lxc-templates`) on your computer.
+All you need is *Ubuntu 14.10/utopic* and LXC installed (`apt-get install lxc-templates`) on your computer.
 
 To prevent any common pitfalls, make sure to clone this somewhere within (and/or underneath) your Linux home directory and as your own Linux user. Also make sure to uninstall any of the software the container you are going to use provides, so that for instance Apache won't claim a TCP port your main machine uses. It makes sense to keep `mysql-server` on your host installed and to use the containers that don't ship MySQL, as this makes it easy to switch containers but not databases.
 
@@ -22,22 +22,22 @@ cd lxc-containers/
 ### apache-memcached-php55, drupal8
 *Debian 7*, *Apache 2*, *Memcached*, *Drush*, *Composer*, *PHP 5.5*
 
-Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.3.10/ for further instructions.
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.2.10/ for further instructions.
 
 ### apache-memcached-mysql-php55, drupal8my
 *Debian 7*, *Apache 2*, *MySQL*, *Memcached*, *Drush*, *Composer*, *PHP 5.5*
 
-Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. This container ships with MySQL installed, which you can connect to with `root`/`root`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.3.10/ for further instructions.
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `opcache` set to `128m` and various Xdebug settings enabled and memcached at `64m`. This container ships with MySQL installed, which you can connect to with `root`/`root`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.2.10/ for further instructions.
 
 ### apache-memcached-php53, drupal7
 *Debian 7*, *Apache 2*, *Memcached*, *Drush*, *Composer*, *PHP 5.3*
 
-Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.3.10/ for further instructions.
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.2.10/ for further instructions.
 
 ### apache-memcached-mysql-php53, drupal7my
 *Debian 7*, *Apache 2*, *MySQL*, *Memcached*, *Drush*, *Composer*, *PHP 5.3*
 
-Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. This container ships with MySQL installed, which you can connect to with `root`/`root`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.3.10/ for further instructions.
+Simple webserver that mounts your home directory into the container, and runs Apache as your user. PHP is mainly left default with `apc` set to `128m` and various Xdebug settings enabled and memcached at `64m`. This container ships with MySQL installed, which you can connect to with `root`/`root`. Once your container is fully started and prompts you with a login terminal, point your browser at http://10.0.2.10/ for further instructions.
 
 ### bare
 *Debian 7*
