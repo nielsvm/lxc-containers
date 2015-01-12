@@ -153,7 +153,7 @@ function bootstrap_8_tune_php {
   echo 'opcache.memory_consumption=128' >> /etc/php5/mods-available/opcache.ini
   echo 'opcache.interned_strings_buffer=16' >> /etc/php5/mods-available/opcache.ini
   echo 'opcache.max_accelerated_files=4000' >> /etc/php5/mods-available/opcache.ini
-  echo 'opcache.revalidate_freq=60' >> /etc/php5/mods-available/opcache.ini
+  echo 'opcache.revalidate_freq=0' >> /etc/php5/mods-available/opcache.ini
   echo 'opcache.fast_shutdown=1' >> /etc/php5/mods-available/opcache.ini
   echo 'opcache.enable_cli=1' >> /etc/php5/mods-available/opcache.ini
   etc-save "php: enable opcache"
