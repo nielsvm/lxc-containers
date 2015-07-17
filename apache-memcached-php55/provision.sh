@@ -160,6 +160,10 @@ function bootstrap_7_tune_php {
   echo 'opcache.enable_cli=1' >> /etc/php5/mods-available/opcache.ini
   etc-save "php: enable opcache"
 
+  # Set a default timezone, to silence many PHP scripts from warning.
+  echo 'date.timezone = Europe/Amsterdam' >> /etc/php5/mods-available/defaulttimezone.ini
+  etc-save "php: set default timezone"
+
   # XDEBUG: enable pretty var_dump output.
   echo 'xdebug.var_display_max_depth=20' >> /etc/php5/mods-available/xdebug.ini
   echo 'xdebug.show_local_vars=on' >> /etc/php5/mods-available/xdebug.ini
