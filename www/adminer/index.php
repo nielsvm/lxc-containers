@@ -9,7 +9,8 @@ function adminer_object() {
 
     function name() {
       global $lxc_container_ipv4;
-      return "<a href='http://$lxc_container_ipv4' target='_blank' id='h1'>LXC</a>";
+      global $lxc_container_name;
+      return "<a href='http://$lxc_container_ipv4' target='_blank' id='h1'>$lxc_container_name</a>";
     }
 
     function permanentLogin() {
