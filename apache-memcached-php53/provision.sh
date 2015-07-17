@@ -99,6 +99,16 @@ function bootstrap_5_tune_server {
   echo "$LXC_HOST_IPV4 $LXC_HOST_DOMAIN" >> /etc/hosts
   echo "127.0.0.1       $HOSTNAME" >> /etc/hosts
   etc-save "Updated /etc/hosts."
+
+  # Write out default MySQL client settings.
+  mkdir -p /etc/mysql/conf.d
+  echo "[client]" >> /etc/mysql/conf.d/mysqlclient.cnf
+  echo "port=3306" >> /etc/mysql/conf.d/mysqlclient.cnf
+  echo "host=$LXC_MYSQLCLIENT_HOST" >> /etc/mysql/conf.d/mysqlclient.cnf
+  echo "user=$LXC_MYSQLCLIENT_USER" >> /etc/mysql/conf.d/mysqlclient.cnf
+  echo "password=$LXC_MYSQLCLIENT_PASSWORD" >> /etc/mysql/conf.d/mysqlclient.cnf
+  addpkg "mysql-client"
+  etc-save "Installed and configured mysql-client"
 }
 
 # Bootstrap phase 6: tune PHP and its extensions.
