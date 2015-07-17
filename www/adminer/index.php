@@ -1,4 +1,5 @@
 <?php
+require "/etc/lxc-containervars.php";
 
 /**
  * Define a AdminerSoftware object providing the LXC credentials.
@@ -6,12 +7,19 @@
 function adminer_object() {
   class AdminerSoftware extends Adminer {
 
+    function name() {
+      global $lxc_container_ipv4;
+      return "<a href='http://$lxc_container_ipv4' target='_blank' id='h1'>LXC</a>";
+    }
+
     function permanentLogin() {
       return "permanent";
     }
 
     function credentials() {
-      require "/etc/lxc-containervars.php";
+      global $lxc_mysqlclient_host;
+      global $lxc_mysqlclient_user;
+      global $lxc_mysqlclient_password;
       return array($lxc_mysqlclient_host, $lxc_mysqlclient_user, $lxc_mysqlclient_password);
     }
   }
