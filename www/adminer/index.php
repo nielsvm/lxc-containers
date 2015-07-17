@@ -20,11 +20,7 @@ function adminer_object() {
 }
 
 /**
- * Fake ?username, which gets us a UI instantly.
+ * Fake ?username and load up Adminer.
  */
 $_GET['username'] = '';
-
-/**
- * Load Adminer.
- */
-require "adminer-4.1.0.php";
+require "adminer-4.2.1.php";
