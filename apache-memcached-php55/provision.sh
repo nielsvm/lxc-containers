@@ -162,6 +162,7 @@ function bootstrap_7_tune_php {
 
   # Set a default timezone, to silence many PHP scripts from warning.
   echo 'date.timezone = Europe/Amsterdam' >> /etc/php5/mods-available/defaulttimezone.ini
+  ln -s /etc/php5/mods-available/defaulttimezone.ini /etc/php5/apache2/conf.d/
   etc-save "php: set default timezone"
 
   # XDEBUG: enable pretty var_dump output.

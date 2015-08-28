@@ -170,8 +170,9 @@ function bootstrap_8_tune_php {
 
   # Set a default timezone, to silence many PHP scripts from warning.
   echo 'date.timezone = Europe/Amsterdam' >> /etc/php5/mods-available/defaulttimezone.ini
+  ln -s /etc/php5/mods-available/defaulttimezone.ini /etc/php5/apache2/conf.d/
   etc-save "php: set default timezone"
-  
+
   # XDEBUG: enable pretty var_dump output.
   echo 'xdebug.var_display_max_depth=20' >> /etc/php5/mods-available/xdebug.ini
   echo 'xdebug.show_local_vars=on' >> /etc/php5/mods-available/xdebug.ini
