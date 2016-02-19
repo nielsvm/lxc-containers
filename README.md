@@ -4,7 +4,7 @@ This repository equips your Linux machine with several utility *containers* of s
 ### LXC?
 LXC is a thin layer on top of Linux cgroups, allowing you to 'slice up' your computer without full X86 emulation, but mere resource splitting. Containers live in `/var/lib/lxc` and have their own (tiny) root hierarchies, essential system binaries but share your main kernel instance.
 
-You can compare this project a little bit with `varnish-lxc` but this is intentionally simple, highly portable (git clone) and aimed at coders who need something **seriously fast**. Virtualization can be fast but isn't always necessarily so, and when its just a LAMP stack or ruby/python binaries of some version you need, this gives you the best of both.
+You can compare this project a little bit with `vagrant-lxc` but this is intentionally simple, highly portable (git clone) and aimed at coders who need something **seriously fast**. Virtualization can be fast but isn't always necessarily so, and when its just a LAMP stack or ruby/python binaries of some version you need, this gives you the best of both.
 
 # Installation
 All you need is *Ubuntu 14.10/utopic* and LXC installed (`apt-get install lxc-templates`) on your computer.
