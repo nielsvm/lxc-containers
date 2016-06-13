@@ -13,7 +13,9 @@ You can compare this project a little bit with `vagrant-lxc` but this is intenti
   * ``sudo chmod 705 /var/lib/lxc``
 * **OpenSuSE:**
   * ``sudo zypper install lxc bridge-utils``
+  * ``sudo chmod 705 /var/lib/lxc``
   * Put into ``/etc/lxc/default.conf``:
+  
   ```
 lxc.network.type = veth
 lxc.network.link = lxcbr0
@@ -21,6 +23,7 @@ lxc.network.flags = up
 lxc.network.hwaddr = 00:16:3e:xx:xx:xx
 ```
   * Put into ``/etc/default/lxc-net``:
+  
   ```
 USE_LXC_BRIDGE="true"
 LXC_BRIDGE="lxcbr0"
