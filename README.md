@@ -1,3 +1,4 @@
+---
 # lxc-containers
 This repository equips your Linux machine with several utility *containers* of some sort, built entirely on LXC. Intended mainly for software developers, this allows you to run LAMP stacks and variations thereof on your computer without littering your desktop installation and without requiring heavily bloated virtualization solutions.
 
@@ -7,7 +8,29 @@ LXC is a thin layer on top of Linux cgroups, allowing you to 'slice up' your com
 You can compare this project a little bit with `vagrant-lxc` but this is intentionally simple, highly portable (git clone) and aimed at coders who need something **seriously fast**. Virtualization can be fast but isn't always necessarily so, and when its just a LAMP stack or ruby/python binaries of some version you need, this gives you the best of both.
 
 # Installation
-All you need is *Ubuntu 14.10/utopic* and LXC installed (`apt-get install lxc-templates`) on your computer.
+* **Ubuntu:**
+  * ``sudo apt-get install lxc-templates``
+  * ``sudo chmod 705 /var/lib/lxc``
+* **OpenSuSE:**
+  * ``sudo zypper install lxc bridge-utils``
+  * Put into ``/etc/lxc/default.conf``:
+  ```
+lxc.network.type = veth
+lxc.network.link = lxcbr0
+lxc.network.flags = up
+lxc.network.hwaddr = 00:16:3e:xx:xx:xx
+```
+  * Put into ``/etc/default/lxc-net``:
+  ```
+USE_LXC_BRIDGE="true"
+LXC_BRIDGE="lxcbr0"
+LXC_ADDR="10.0.2.1"
+LXC_NETMASK="255.255.255.0"
+LXC_NETWORK="10.0.2.0/24"
+LXC_DHCP_RANGE="10.0.2.2,10.0.2.254"
+LXC_DHCP_MAX="253"
+```
+  * ``systemctl enable lxc lxc-net && systemctl start lxc lxc-net``
 
 To prevent any common pitfalls, make sure to clone this somewhere within (and/or underneath) your Linux home directory and as your own Linux user. Also make sure to uninstall any of the software the container you are going to use provides, so that for instance Apache won't claim a TCP port your main machine uses. It makes sense to keep `mysql-server` on your host installed and to use the containers that don't ship MySQL, as this makes it easy to switch containers but not databases.
 
