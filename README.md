@@ -34,6 +34,7 @@ LXC_DHCP_RANGE="10.0.2.2,10.0.2.254"
 LXC_DHCP_MAX="253"
 ```
   * ``systemctl enable lxc lxc-net && systemctl start lxc lxc-net``
+  * ``sudo service apparmor restart``
 
 To prevent any common pitfalls, make sure to clone this somewhere within (and/or underneath) your Linux home directory and as your own Linux user. Also make sure to uninstall any of the software the container you are going to use provides, so that for instance Apache won't claim a TCP port your main machine uses. It makes sense to keep `mysql-server` on your host installed and to use the containers that don't ship MySQL, as this makes it easy to switch containers but not databases.
 
