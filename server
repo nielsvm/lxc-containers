@@ -267,12 +267,14 @@ def test_environment_dependencies(prog=None):
 
   # Perform all runtime tests.
   v = get_vars()
-  deps = ['chroot', 'chmod', 'mount', 'umount',
+  deps = ['chroot', 'chmod', 'mount', 'umount', 'debootstrap',
           'lxc-start', 'lxc-stop', 'lxc-destroy']
   if pwd.getpwuid(os.stat(v['repo']).st_uid).pw_dir not in v['repo']:
     quit("containers repository should be put within your home directory!")
   if platform.system() != 'Linux':
     quit('This only works on Linux.')
+  if not os.path.exists(v['lxc']):
+      quit("Root LXC path %s does not exist!" % v['lxc'])
   if oct(stat.S_IMODE(os.lstat(v['lxc']).st_mode)) != '0o705':
     quit('Please do "sudo chmod 705 %s".' % v['lxc'])
   for dep in deps:
